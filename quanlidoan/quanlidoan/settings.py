@@ -75,9 +75,16 @@ WSGI_APPLICATION = 'quanlidoan.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'mssql',
+        'NAME': 'QuanLyDoAn',    
+        'USER': 'quanlidoan',
+        'PASSWORD': '123456789', 
+        'HOST': 'DESKTOP-8E1HGU2\SQLEXPRESS',     
+        'PORT': '',        
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',  # driver đã cài
+        },
+    },
 }
 
 

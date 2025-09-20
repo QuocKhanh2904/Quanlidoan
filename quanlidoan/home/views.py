@@ -5,3 +5,7 @@ from django.http import HttpResponse
 
 def home(request):
     return render(request, 'app/home.html')
+def topic(request):
+    return render(request, 'app/topic.html')
+def report_progress(request):
+    return render(request, 'app/report_progress.html')

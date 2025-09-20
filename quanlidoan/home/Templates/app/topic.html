@@ -1,0 +1,42 @@
+{% extends 'app/base.html' %} {% load static %}
+{% block topic %}
+<link rel="stylesheet" href="{% static 'app/css/topic.css' %}" />
+<div class="container">
+  <h1>ĐĂNG KÝ ĐỀ TÀI</h1>
+
+  <div class="search-box">
+    <input type="text" placeholder="Tên đề tài">
+    <button>TÌM KIẾM</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Tên đề tài</th>
+        <th>Chi tiết</th>
+        <th>Đăng ký</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Tìm hiểu công nghệ thực tế ảo và AI</td>
+        <td><button class="btn-view">XEM</button></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Tìm hiểu công nghệ Blockchain</td>
+        <td><button class="btn-view">XEM</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button>Trang đầu</button>
+    <button>&lt;</button>
+    <button class="active">2</button>
+    <button>&gt;</button>
+    <button>Trang cuối</button>
+  </div>
+  {% endblock topic %}
