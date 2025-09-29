@@ -1,0 +1,16 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block register_topic %}
+<link rel="stylesheet" href="{% static 'app/css/register_topic.css' %}">
+<div class="container">
+    <h1>Đăng ký</h1> <br>
+    <div class="topic-details">
+        Mã đồ án: <p>{{topic.mada}}</p>
+        Tên đồ án: <p>{{topic.tenda}}</p>
+        Lĩnh vực: <p>{{topic.linhvuc}}</p>
+        Giảng viên HD: <p>{{topic.giangvien}}</p>
+        Mô tả: <p>{{topic.mota}}</p>
+        <button class="btn-register">Đăng ký</button>
+    </div>
+</div>
+{% endblock register_topic %}
