@@ -20,7 +20,7 @@ class Bienban(models.Model):
 
 
 class Dangky(models.Model):
-    madk = models.IntegerField(db_column='MaDK', primary_key=True)
+    madk = models.AutoField(db_column='MaDK', primary_key=True)
     ngaydk = models.DateField(db_column='NgayDK', blank=True, null=True)
     trangthai = models.CharField(db_column='TrangThai', max_length=50, blank=True, null=True)
     mada = models.ForeignKey('Doan', models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
@@ -80,8 +80,8 @@ class Doan(models.Model):
 
 
 class Giangvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
-    magv = models.IntegerField(db_column='MaGV', primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, db_column='magv')
+    magv = models.AutoField(db_column='MaGV', primary_key=True) #AUTO
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
@@ -93,8 +93,8 @@ class Giangvien(models.Model):
 
 
 class Hocvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
-    mahv = models.IntegerField(db_column='MaHV', primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, db_column='mahv')
+    mahv = models.AutoField(db_column='MaHV', primary_key=True)
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
@@ -152,13 +152,13 @@ class Thanhvienhoidong(models.Model):
 
 
 class Tiendo(models.Model):
-    matd = models.IntegerField(db_column='MaTD', primary_key=True)
+    matd = models.AutoField(db_column='MaTD', primary_key=True)
     motacongviec = models.TextField(db_column='MoTaCongViec', blank=True, null=True)
     tiendophantram = models.IntegerField(db_column='TienDoPhanTram', blank=True, null=True)
     ngaycapnhat = models.DateField(db_column='NgayCapNhat', blank=True, null=True)
     nguoikiemtra = models.CharField(db_column='NguoiKiemTra', max_length=100, blank=True, null=True)
     mada = models.ForeignKey(Doan, models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
-
+    file = models.FileField(db_column='File', upload_to='baocao/', blank=True, null=True)
     class Meta:
         managed = False
         db_table = 'TIENDO'

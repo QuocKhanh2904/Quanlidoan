@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,7 +85,7 @@ DATABASES = {
         'NAME': 'QuanLyDoAn',    
         'USER': 'quanlidoan',
         'PASSWORD': '123456789', 
-        'HOST': 'DESKTOP-8E1HGU2\SQLEXPRESS',     
+        'HOST': r'DESKTOP-8E1HGU2\SQLEXPRESS',     
         'PORT': '',        
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # driver đã cài

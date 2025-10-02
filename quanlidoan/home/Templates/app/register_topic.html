@@ -2,15 +2,42 @@
 {% load static %}
 {% block register_topic %}
 <link rel="stylesheet" href="{% static 'app/css/register_topic.css' %}">
-<div class="container">
-    <h1>Đăng ký</h1> <br>
-    <div class="topic-details">
-        Mã đồ án: <p>{{topic.mada}}</p>
-        Tên đồ án: <p>{{topic.tenda}}</p>
-        Lĩnh vực: <p>{{topic.linhvuc}}</p>
-        Giảng viên HD: <p>{{topic.giangvien}}</p>
-        Mô tả: <p>{{topic.mota}}</p>
-        <button class="btn-register">Đăng ký</button>
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-4 p-4 topic-card">
+        <h2 class="text-center text-primary mb-4">📚 Đăng ký Đồ án</h2>
+
+        <div class="topic-details">
+            <div class="row mb-3">
+                <div class="col-4 fw-bold">Mã đồ án:</div>
+                <div class="col-8">{{topic.mada}}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-4 fw-bold">Tên đồ án:</div>
+                <div class="col-8">{{topic.tenda}}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-4 fw-bold">Lĩnh vực:</div>
+                <div class="col-8">{{topic.linhvuc}}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-4 fw-bold">Giảng viên HD:</div>
+                <div class="col-8">{{topic.magv__hoten}}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-4 fw-bold">Mô tả:</div>
+                <div class="col-8">{{topic.mota}}</div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg px-5 btn-register" data-action="register"
+                data-topic-id="{{topic.mada}}">
+                Đăng ký
+            </button>
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     </div>
 </div>
+
+<script src="{% static 'app/js/register_topic.js' %}"></script>
 {% endblock register_topic %}

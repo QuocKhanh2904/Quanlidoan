@@ -27,7 +27,9 @@
         <td><button class="btn-view"
             onclick="openModal('{{topic.mada}}', '{{topic.tenda}}', '{{topic.linhvuc}}', '{{topic.giangvien}}', '{{topic.mota}}')">Chi
             tiết</button></td>
-        <td><a href="{% url 'register_topic'%}"><button class="btn-view">Đăng ký</button></a></td>
+        <td><a href="{% url 'register_topic'%}?topic_id={{ topic.mada }}"><button class="btn-view"
+              data-action="register">Đăng
+              ký</button></a></td>
 
       </tr>
       {% endfor %}

@@ -1,5 +1,7 @@
+from django.utils import timezone
+import json
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import *
 
 # Create your views here.
@@ -15,10 +17,63 @@ def topic(request):
     return render(request, 'app/topic.html', context)
 
 def register_topic(request):
-    return render(request, 'app/register_topic.html')
+    topic_id = request.GET.get('topic_id')
+    # Handle the registration logic here
+    topic = (
+    Doan.objects.filter(mada=topic_id)
+    .values("mada", "tenda", "linhvuc", "magv__hoten", "mota")
+    .first()
+    if topic_id else None
+)
+    context = {'topic': topic}
+    return render(request, 'app/register_topic.html', context)
+
+def regist_topic(request):
+    data = json.loads(request.body)
+    topicId = data['topicId']
+    action = data['action']
+    topic = Doan.objects.get(mada=topicId)
+    # Handle the registration logic here
+    user = request.user
+    
+    if action == 'register':
+        # Register the user for the topic
+        try:
+            Dangky.objects.create(
+                mada=topic,
+                mahv=user.hocvien,
+                ngaydk=timezone.now(),
+                trangthai='1'
+            )
+            return JsonResponse({"status": "success", "message": "Đăng ký thành công!"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"Đăng ký thất bại: {str(e)}"})
 
 def report_progress(request):
-    return render(request, 'app/report_progress.html')
+    user = request.user
+    doan = Doan.objects.filter(dangky__mahv=user.hocvien).first()
+    context = {'doan': doan}
+    return render(request, 'app/report_progress.html', context)
+
+def submit_report(request):
+    mota = request.POST.get('motacongviec', '').strip()
+    filebaocao = request.FILES.get('filebaocao')
+    user = request.user
+    doan = Doan.objects.filter(dangky__mahv=user.hocvien).first()
+    
+    if doan:
+        try:
+            Tiendo.objects.create(
+                mada=doan,
+                file=filebaocao,
+                motacongviec=mota,
+                ngaycapnhat=timezone.now()
+            )
+            return JsonResponse({"status": "success", "message": "Báo cáo đã được gửi!"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"Gửi báo cáo thất bại: {str(e)}"})
+    else:
+        return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
 
 def report_detail(request):
     return render(request, 'app/report_detail.html')

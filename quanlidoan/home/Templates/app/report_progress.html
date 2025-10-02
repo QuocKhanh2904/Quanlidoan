@@ -2,45 +2,51 @@
 {% load static %}
 {% block report_progress %}
 <link rel="stylesheet" href="{% static 'app/css/report_progress.css' %}">
-<h1>Report Progress</h1>
-<div class="container">
-    <h2>Tiến độ</h2>
-    <div class="progress-table">
-        <table>
-            <tr>
-                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 1</button>
-                </td>
-                <td>
-                    Giai đoạn 1 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
-                    <progress max="100" value="50" class="load-progress"></progress> <br>
-                </td>
-            </tr>
-            <tr>
-                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 2</button>
-                </td>
-                <td>
-                    Giai đoạn 2 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p><br>
-                    <progress max="100" value="0" class="load-progress"></progress> <br>
-                </td>
-            </tr>
-            <tr>
-                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 4</button>
-                </td>
-                <td>
-                    Giai đoạn 3 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
-                    <progress max="100" value="0" class="load-progress"></progress> <br>
-                </td>
-            </tr>
-            <tr>
-                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 4</button>
-                </td>
-                <td>
-                    Giai đoạn 4 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
-                    <progress max="100" value="0" class="load-progress"></progress> <br>
-                </td>
-            </tr>
-        </table>
-    </div class="progress-table">
+<div class="container mt-4">
+    <h1>Báo cáo tiến độ</h1>
+    <p><strong>Thông tin đồ án:</strong>
+    <p><strong>Tên đồ án:</strong> {{doan.tenda}}</p>
+    <p><strong>Mô tả đồ án:</strong> {{doan.mota}}</p> <br>
 
+    <div class="report-form mb-4">
+        <!-- Mô tả công việc -->
+        <div class="mb-3">
+            <label for="motacongviec" class="form-label">Mô tả công việc</label>
+            <textarea class="form-control" id="motacongviec" name="motacongviec" rows="3" required></textarea>
+        </div>
+
+        <!-- File báo cáo -->
+        <div class="mb-3">
+            <label for="filebaocao" class="form-label">File báo cáo</label>
+            <input type="file" class="form-control" id="filebaocao" name="filebaocao"
+                accept=".pdf,.doc,.docx,.xlsx,.png,.jpg,.zip">
+            <small class="text-muted">Định dạng cho phép: PDF, Word, Excel, hình ảnh, zip...</small>
+
+            <!-- Preview tên file -->
+            <div id="filePreview" class="mt-2 text-success fw-bold"></div>
+        </div>
+
+        <button class="btn btn-primary" id="submitReport" data-action="submit">📤 Nộp báo cáo</button>
+    </div>
+
+
+    <hr class="my-4">
+
+    <!-- Danh sách các lần báo cáo trước -->
+    <h4>Lịch sử báo cáo</h4>
+    <ul class="list-group">
+        {% for td in tiendos %}
+        <li class="list-group-item">
+            <strong>{{ td.ngaycapnhat }}:</strong> {{ td.motacongviec }}
+            ({{ td.tiendophantram }}%)
+            {% if td.filebaocao %}
+            - <a href="{{ td.filebaocao.url }}" target="_blank">📎 Xem báo cáo</a>
+            {% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">Chưa có báo cáo nào</li>
+        {% endfor %}
+    </ul>
 </div>
+<script src="{% static 'app/js/report_progress.js' %}"></script>
 {% endblock %}

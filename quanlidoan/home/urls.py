@@ -3,10 +3,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('topic/', views.topic, name='topic'),
     path('topic/register_topic/', views.register_topic, name='register_topic'),
+    path('topic/regist_topic/', views.regist_topic, name='regist_topic'),
     path('report_progress/', views.report_progress, name='report_progress'),
+    path('submit_report/', views.submit_report, name='submit_report'),
     path('report_progress/report_detail/', views.report_detail, name='report_detail'),
 ]
