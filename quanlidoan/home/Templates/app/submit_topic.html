@@ -1,0 +1,55 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block submit_topic %}
+<div class="container py-5" style="width: 70%;">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0" style="text-align: center;">📤 Nộp Đồ Án</h4>
+        </div>
+        <div class="card-body">
+            <form id="submitThesisForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Tên đồ án -->
+                <div class="mb-4">
+                    <h5><strong>Tên đồ án:</strong> <span class="text-dark">{{doan.tenda}}</span></h5>
+                    <h6 class="mt-3"><strong>Mô tả đồ án:</strong></h6>
+                    <p class="text-muted">{{doan.mota}}</p>
+                </div>
+
+                <!-- File nộp -->
+                <div class="mb-4">
+                    <label for="filebaocao" class="form-label">
+                        <strong>📎 File nộp</strong>
+                    </label>
+                    <input type="file" class="form-control" id="filedoan" name="filebaocao"
+                        accept=".pdf,.doc,.docx,.xlsx,.png,.jpg,.zip">
+                    <div class="form-text">
+                        Định dạng cho phép: PDF, Word, Excel, hình ảnh, ZIP...
+                    </div>
+
+                    <!-- Preview tên file -->
+                    <div id="filePreview" class="mt-2 text-success fw-bold"></div>
+                </div>
+
+                <!-- Nút nộp -->
+                <div class="d-grid">
+                    {% if doan.file %}
+                    <!-- Đã nộp rồi thì không cho nộp lại -->
+                    <button type="submit" class="btn btn-secondary btn-lg" disabled>
+                        ✅ Đã nộp đồ án
+                    </button>
+                    {% else %}
+                    <!-- Chưa nộp thì cho phép nộp -->
+                    <button type="submit" class="btn btn-success btn-lg" id="submit" data-action="submit">
+                        📩 Nộp đồ án
+                    </button>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+<script src="{% static 'app/js/submit_topic.js' %}"></script>
+{% endblock submit_topic %}

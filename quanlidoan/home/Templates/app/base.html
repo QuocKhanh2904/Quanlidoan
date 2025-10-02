@@ -64,8 +64,7 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="{% url 'topic' %}">Đăng ký đề tài</a></li>
               <li><a class="dropdown-item" href="{% url 'report_progress' %}">Báo cáo tiến độ</a></li>
-              <li><a class="dropdown-item" href="#">Nộp đề cương</a></li>
-              <li><a class="dropdown-item" href="#">Nộp đồ án</a></li>
+              <li><a class="dropdown-item" href="{% url 'submit_topic' %}">Nộp đồ án</a></li>
               <li><a class="dropdown-item" href="#">Kết quả & điểm</a></li>
             </ul>
           </li>
@@ -108,12 +107,25 @@
   {% block topic %}{% endblock topic %}
   {% block register_topic %} {% endblock register_topic %}
   {% block report_progress %} {% endblock report_progress %}
-  {% block report_detail %} {% endblock report_detail %}
+  {% block submit_topic %} {% endblock submit_topic %}
 
   <!-- notify -->
   <!-- Thông báo chung -->
-  <div id="notification-container"></div>
+  <div aria-live="polite" aria-atomic="true" class="position-relative" style="top: 10%; right: 5px;  position: fixed;">
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="liveToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
+        aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="toast-message">
+            <!-- Nội dung sẽ được thay bằng JS -->
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
   </div>
+  <!-- end notify -->
 
   <!-- footer -->
   <footer class="container-fluid bg-success text-center fixed-bottom p-2 mt-5">

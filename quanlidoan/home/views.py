@@ -52,7 +52,8 @@ def regist_topic(request):
 def report_progress(request):
     user = request.user
     doan = Doan.objects.filter(dangky__mahv=user.hocvien).first()
-    context = {'doan': doan}
+    tiendos = Tiendo.objects.filter(mada=doan).order_by('ngaycapnhat') if doan else []
+    context = {'doan': doan, 'tiendos': tiendos}
     return render(request, 'app/report_progress.html', context)
 
 def submit_report(request):
@@ -75,5 +76,22 @@ def submit_report(request):
     else:
         return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
 
-def report_detail(request):
-    return render(request, 'app/report_detail.html')
+def submit_topic(request):
+    doan = Doan.objects.filter(dangky__mahv=request.user.hocvien).first()
+    context = {'doan': doan}
+    return render(request, 'app/submit_topic.html', context)
+
+def update_topic(request):
+    action = request.POST.get('action')
+    if action == 'submit':
+        filedoan = request.FILES.get('filedoan')
+        doan = Doan.objects.filter(dangky__mahv=request.user.hocvien).first()
+        if doan:
+            try:
+                doan.file = filedoan
+                doan.save()
+                return JsonResponse({"status": "success", "message": "Đã nộp đồ án thành công!"})
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": f"Đã xảy ra lỗi: {str(e)}"})
+        else:
+            return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})

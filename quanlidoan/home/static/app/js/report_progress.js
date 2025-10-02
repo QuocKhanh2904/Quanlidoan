@@ -37,14 +37,14 @@ button.addEventListener("click", function () {
         .then(data => {
             if (data.status === "success") {
                 console.log(data.message);
-                showMessage("success", data.message);
+                showToast(data.message);
                 // Thực hiện các hành động khác nếu cần, ví dụ: reset form
                 document.getElementById("motacongviec").value = "";
                 document.getElementById("filebaocao").value = "";
                 document.getElementById("filePreview").textContent = "";
             } else {
                 console.log(data.message);
-                showMessage("error", data.message);
+                showToast(data.message);
             }
         })
         .catch(error => {

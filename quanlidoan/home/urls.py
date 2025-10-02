@@ -9,5 +9,6 @@ urlpatterns = [
     path('topic/regist_topic/', views.regist_topic, name='regist_topic'),
     path('report_progress/', views.report_progress, name='report_progress'),
     path('submit_report/', views.submit_report, name='submit_report'),
-    path('report_progress/report_detail/', views.report_detail, name='report_detail'),
+    path('submit_topic/', views.submit_topic, name='submit_topic'),
+    path('update_topic/', views.update_topic, name='update_topic'),
 ]

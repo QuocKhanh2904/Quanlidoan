@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Bienban(models.Model):
-    mabb = models.IntegerField(db_column='MaBB', primary_key=True)
+    mabb = models.AutoField(db_column='MaBB', primary_key=True)
     ngaybaove = models.DateField(db_column='NgayBaoVe', blank=True, null=True)
     diadiem = models.CharField(db_column='DiaDiem', max_length=100, blank=True, null=True)
     noidung = models.TextField(db_column='NoiDung', blank=True, null=True)
@@ -47,7 +47,7 @@ def dictfetchall(cursor):
 
 
 class Doan(models.Model):
-    mada = models.IntegerField(db_column='MaDA', primary_key=True)
+    mada = models.AutoField(db_column='MaDA', primary_key=True)
     tenda = models.CharField(db_column='TenDA', max_length=200, blank=True, null=True)
     trangthai = models.CharField(db_column='TrangThai', max_length=50, blank=True, null=True)
     soluongtoida = models.IntegerField(db_column='SoLuongToiDa', blank=True, null=True)
@@ -56,6 +56,7 @@ class Doan(models.Model):
     linhvuc = models.CharField(db_column='LinhVuc', max_length=100, blank=True, null=True)
     ngaybd = models.DateField(db_column='NgayBD', blank=True, null=True)
     ngaykt = models.DateField(db_column='NgayKT', blank=True, null=True)
+    file = models.FileField(db_column='FileDoAn', upload_to='doan/', blank=True, null=True)
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
 
@@ -106,7 +107,7 @@ class Hocvien(models.Model):
 
 
 class Hoidong(models.Model):
-    mahd = models.IntegerField(db_column='MaHD', primary_key=True)
+    mahd = models.AutoField(db_column='MaHD', primary_key=True)
     tenhd = models.CharField(db_column='TenHD', max_length=100, blank=True, null=True)
     ngaythanhlap = models.DateField(db_column='NgayThanhLap', blank=True, null=True)
     ngayketthuc = models.DateField(db_column='NgayKetThuc', blank=True, null=True)
@@ -129,7 +130,7 @@ class Huongdandoan(models.Model):
 
 
 class Ketquabaove(models.Model):
-    makq = models.IntegerField(db_column='MaKQ', primary_key=True)
+    makq = models.AutoField(db_column='MaKQ', primary_key=True)
     diem = models.FloatField(db_column='Diem', blank=True, null=True)
     danhgia = models.CharField(db_column='DanhGia', max_length=200, blank=True, null=True)
     xeploai = models.CharField(db_column='XepLoai', max_length=50, blank=True, null=True)
@@ -141,7 +142,7 @@ class Ketquabaove(models.Model):
 
 
 class Thanhvienhoidong(models.Model):
-    matv = models.IntegerField(db_column='MaTV', primary_key=True)
+    matv = models.AutoField(db_column='MaTV', primary_key=True)
     vaitro = models.CharField(db_column='VaiTro', max_length=50, blank=True, null=True)
     magv = models.ForeignKey(Giangvien, models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey(Hoidong, models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
