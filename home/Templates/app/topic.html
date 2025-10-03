@@ -1,0 +1,57 @@
+{% extends 'app/base.html' %} {% load static %}
+{% block topic %}
+<link rel="stylesheet" href="{% static 'app/css/topic.css' %}" />
+<script src="{% static 'app/js/topic.js' %}"></script>
+<div class="container">
+  <h1>ĐĂNG KÝ ĐỀ TÀI</h1>
+
+  <div class="search-box">
+    <input type="text" placeholder="Tên đề tài">
+    <button>TÌM KIẾM</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Mã đồ án</th>
+        <th>Tên đồ án</th>
+        <th>Chi tiết</th>
+        <th>Đăng ký</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for topic in topics%}
+      <tr>
+        <td>{{ topic.mada }}</td>
+        <td>{{ topic.tenda }}</td>
+        <td><button class="btn-view"
+            onclick="openModal('{{topic.mada}}', '{{topic.tenda}}', '{{topic.linhvuc}}', '{{topic.giangvien}}', '{{topic.mota}}')">Chi
+            tiết</button></td>
+        <td><a href="{% url 'register_topic'%}"><button class="btn-view">Đăng ký</button></a></td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Popup -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Thông tin đề tài</h2>
+      <p><b>Mã đồ án:</b> <span id="modal-id"></span></p>
+      <p><b>Tên đồ án:</b> <span id="modal-name"></span></p>
+      <p><b>Lĩnh vực:</b> <span id="modal-field"></span></p>
+      <p><b>Giảng viên HD:</b> <span id="modal-teacher"></span></p>
+      <p><b>Mô tả:</b> <span id="modal-desc"></span></p>
+    </div>
+  </div>
+
+  <div class="pagination">
+    <button>Trang đầu</button>
+    <button>&lt;</button>
+    <button class="active">2</button>
+    <button>&gt;</button>
+    <button>Trang cuối</button>
+  </div>
+  {% endblock topic %}

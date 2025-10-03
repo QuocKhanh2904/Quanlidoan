@@ -1,0 +1,30 @@
+{% extends "teacher.html" %}
+{% load static %}
+
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <h2 class="mb-3">Thêm đồ án mới</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+      <label for="ten_do_an" class="form-label">Tên đồ án</label>
+      <input type="text" name="ten_do_an" id="ten_do_an" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="mo_ta" class="form-label">Mô tả</label>
+      <textarea name="mo_ta" id="mo_ta" class="form-control" rows="4"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="ngay_tao" class="form-label">Ngày tạo</label>
+      <input type="date" name="ngay_tao" id="ngay_tao" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a href="{% url 'danh_sach_do_an' %}" class="btn btn-secondary">Hủy</a>
+  </form>
+</div>
+{% endblock %}

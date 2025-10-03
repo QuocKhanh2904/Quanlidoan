@@ -1,0 +1,43 @@
+{% extends "teacher.html" %}
+{% load static %}
+
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <h2 class="mb-3">Danh sách đồ án</h2>
+
+  <!-- Nút thêm -->
+  <a href="{% url 'them_do_an' %}" class="btn btn-success mb-3">+ Thêm đồ án</a>
+
+  <!-- Bảng hiển thị -->
+  <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Tên đồ án</th>
+        <th>Mô tả</th>
+        <th>Ngày tạo</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doan in danh_sach %}
+      <tr>
+        <td>{{ doan.id }}</td>
+        <td>{{ doan.ten_do_an }}</td>
+        <td>{{ doan.mo_ta }}</td>
+        <td>{{ doan.ngay_tao|date:"d/m/Y" }}</td>
+        <td>
+          <a href="{% url 'sua_do_an' doan.id %}" class="btn btn-warning btn-sm">Sửa</a>
+          <a href="{% url 'xoa_do_an' doan.id %}" class="btn btn-danger btn-sm"
+            onclick="return confirm('Bạn có chắc chắn muốn xóa đồ án này?');">Xóa</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center">Chưa có đồ án nào</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

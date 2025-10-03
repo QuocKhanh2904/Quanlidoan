@@ -1,0 +1,46 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block report_progress %}
+<link rel="stylesheet" href="{% static 'app/css/report_progress.css' %}">
+<h1>Report Progress</h1>
+<div class="container">
+    <h2>Tiến độ</h2>
+    <div class="progress-table">
+        <table>
+            <tr>
+                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 1</button>
+                </td>
+                <td>
+                    Giai đoạn 1 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
+                    <progress max="100" value="50" class="load-progress"></progress> <br>
+                </td>
+            </tr>
+            <tr>
+                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 2</button>
+                </td>
+                <td>
+                    Giai đoạn 2 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p><br>
+                    <progress max="100" value="0" class="load-progress"></progress> <br>
+                </td>
+            </tr>
+            <tr>
+                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 4</button>
+                </td>
+                <td>
+                    Giai đoạn 3 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
+                    <progress max="100" value="0" class="load-progress"></progress> <br>
+                </td>
+            </tr>
+            <tr>
+                <td><button class="button-progress">BÁO CÁO GIAI ĐOẠN 4</button>
+                </td>
+                <td>
+                    Giai đoạn 4 : Từ **01-03-2023** đến **30-03-2023**<p class="status">Chưa thực hiện</p> <br>
+                    <progress max="100" value="0" class="load-progress"></progress> <br>
+                </td>
+            </tr>
+        </table>
+    </div class="progress-table">
+
+</div>
+{% endblock %}

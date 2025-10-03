@@ -1,0 +1,25 @@
+{% extends "teacher.html" %}
+{% load static %}
+
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <h2 class="mb-3 text-danger">Xóa đồ án</h2>
+
+  <div class="alert alert-warning">
+    <p>Bạn có chắc chắn muốn xóa đồ án: <strong>{{ doan.ten_do_an }}</strong> không?</p>
+    <p><em>Lưu ý: Hành động này không thể hoàn tác.</em></p>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="{% url 'danh_sach_do_an' %}" class="btn btn-secondary">Hủy</a>
+  </form>
+</div>
+{% endblock %}
+
+
+
+
+
+
