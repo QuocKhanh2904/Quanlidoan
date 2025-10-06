@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'app/css/style.css' %}" />
 
   <!-- js -->
@@ -21,6 +23,10 @@
     crossorigin="anonymous"></script>
   <script src="{% static 'app/js/script.js' %}"></script>
   <script type="text/javascript">
+    user = "{{user.hocvien}}"
+    id = "{{user.hocvien.mahv}}"
+    name = "{{user.hocvien.hoten}}"
+    className = "{{user.hocvien.lop}}"
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -65,42 +71,25 @@
               <li><a class="dropdown-item" href="{% url 'topic' %}">Đăng ký đề tài</a></li>
               <li><a class="dropdown-item" href="{% url 'report_progress' %}">Báo cáo tiến độ</a></li>
               <li><a class="dropdown-item" href="{% url 'submit_topic' %}">Nộp đồ án</a></li>
-              <li><a class="dropdown-item" href="#">Kết quả & điểm</a></li>
+              <li><a class="dropdown-item" href="{% url 'result' %}">Kết quả & điểm</a></li>
             </ul>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Tin tức</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Liên hệ</a>
+            <a class="nav-link" href="{% url 'contact' %}">Liên hệ</a>
           </li>
         </ul>
-        <form class="d-flex" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-          <button class="btn btn-outline-success" type="submit">
-            Search
-          </button>
-        </form>
       </div>
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            User
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Thông tin cá nhân</a></li>
-            <li><a class="dropdown-item" href="#">Đăng xuất</a></li>
-          </ul>
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Xin chào, {{ user }}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Đăng nhập</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Đăng ký</a>
+          <a class="nav-link" href="{% url 'logout' %}">Đăng xuất</a>
         </li>
       </ul>
     </div>
   </nav>
+
   <!-- main-body -->
   {% block banner-slider %}{% endblock banner-slider %}
   {% block main-content %}{% endblock main-content %}
@@ -108,8 +97,10 @@
   {% block register_topic %} {% endblock register_topic %}
   {% block report_progress %} {% endblock report_progress %}
   {% block submit_topic %} {% endblock submit_topic %}
+  {% block result %} {% endblock result %}
+  {% block contact %} {% endblock contact %}
+  <!-- main-body -->
 
-  <!-- notify -->
   <!-- Thông báo chung -->
   <div aria-live="polite" aria-atomic="true" class="position-relative" style="top: 10%; right: 5px;  position: fixed;">
     <div class="toast-container position-fixed bottom-0 end-0 p-3">

@@ -1,0 +1,72 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block result %}
+<div class="container py-5" style="width: 75%;">
+    <h2 class="mb-4 text-primary text-center">Kết quả bảo vệ đồ án</h2>
+
+    <!-- Thông tin đồ án -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-journal-text me-2"></i>Thông tin đồ án
+        </div>
+        <div class="card-body">
+            <p><strong>Tên học viên:</strong> {{ thongtindoan.hoten }}</p>
+            <p><strong>Tên đề tài:</strong> {{ thongtindoan.tenda }}</p>
+            <p><strong>Hội đồng chấm:</strong> {{ thongtindoan.tenhd }}</p>
+        </div>
+    </div>
+
+    <!-- Bảng điểm từng thành viên -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-person-lines-fill me-2"></i>Điểm của từng thành viên hội đồng
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0 text-center">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Tên giảng viên</th>
+                        <th>Vai trò</th>
+                        <th>Điểm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tv in diemthanhvien %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ tv.tengv }}</td>
+                        <td>{{ tv.vaitro }}</td>
+                        <td>{{ tv.diemso }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Kết quả tổng kết -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-warning text-dark">
+            <i class="bi bi-award me-2"></i>Kết quả bảo vệ
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Điểm đồ án</h6>
+                    <p class="fs-5 fw-bold text-danger">{{ ketqua.diem }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Đánh giá</h6>
+                    <p class="fs-5">{{ ketqua.danhgia }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Xếp loại</h6>
+                    <p class="fs-5">{{ ketqua.xeploai }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

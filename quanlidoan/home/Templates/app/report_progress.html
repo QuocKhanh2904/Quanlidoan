@@ -2,14 +2,12 @@
 {% load static %}
 {% block report_progress %}
 <link rel="stylesheet" href="{% static 'app/css/report_progress.css' %}">
-<h1>Báo cáo tiến độ</h1>
 <div class="container py-5">
+    <h2 class="card-title text-primary mb-4" style="text-align: center;">
+        📋 Thông tin báo cáo tiến độ
+    </h2>
     <div class="card shadow-lg border-0">
         <div class="card-body">
-            <h3 class="card-title text-primary mb-4">
-                📋 Thông tin báo cáo tiến độ
-            </h3>
-
             <!-- Thông tin đồ án -->
             <div class="mb-4">
                 <h5><strong>Tên đồ án:</strong> <span class="text-dark">{{doan.tenda}}</span></h5>
@@ -18,7 +16,8 @@
                 <h6 class="mt-3"><strong>Tiến độ:</strong></h6>
                 <div class="progress" style="height: 25px; " id="uploadProgressContainer">
                     <div id="uploadProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-info"
-                        role="progressbar" style="width: 60%" aria-valuenow="60%" aria-valuemin="0" aria-valuemax="100">
+                        role="progressbar" style="width: 1%" aria-valuenow="{{tiendos.0.tiendo}}" aria-valuemin="0"
+                        aria-valuemax="100">
                         {{tiendos.0.tiendo}}%
                     </div>
                 </div>
@@ -77,7 +76,7 @@
                 <tr>
                     <td>{{ report.motacongviec }}</td>
                     <td>{{ report.tiendo }}%</td>
-                    <td>{{ report.ngaycapnhat }}</td>
+                    <td>{{ report.ngaycapnhat|date:"d/m/Y" }}</td>
                     <td>{{ report.nguoikiemtra }}</td>
                     <td>
                         {% if report.file %}

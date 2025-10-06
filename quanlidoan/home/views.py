@@ -1,18 +1,65 @@
 from django.utils import timezone
 import json
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.db.models import F
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.http import  JsonResponse
+from django.contrib.auth.forms import PasswordChangeForm
 from .models import *
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout, update_session_auth_hash
+from django.http import HttpResponseForbidden
 
 # Create your views here.
-
+@login_required
 def home(request):
-    return render(request, 'app/home.html')
+    if not hasattr(request.user, 'hocvien'):
+        return HttpResponseForbidden("Bạn không có quyền truy cập")
+    
+    hocvien = request.user.hocvien
+    context = {'hocvien': hocvien}
+    return render(request, 'app/home.html', context)
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+def change_password(request):
+    if request.method == 'POST':
+        current_password = request.POST.get('currentPassword')
+        new_password = request.POST.get('newPassword')
+        confirm_password = request.POST.get('confirmNewPassword')
+
+        user = request.user
+        if not user.check_password(current_password):
+            return JsonResponse({'status': 'danger', 'message': 'Mật khẩu hiện tại không đúng.'})
+            
+        if new_password != confirm_password:
+            return JsonResponse({'status':'danger', 'message': 'Mật khẩu mới không khớp.'})
+
+    user.set_password(new_password)
+    user.save()
+    update_session_auth_hash(request, user)
+
+    return JsonResponse({'status':'success', 'message':'Mật khẩu đã được thay đổi thành công'})
 
 def topic(request):
-    topics = Doan.get_Doan('1')
+    userTopic = Doan.objects.filter(dangky__mahv=request.user.hocvien).first() if request.user.is_authenticated else None
+
+    tenda = request.GET.get('tenda', '').strip()
+    linhvuc = request.GET.get('linhvuc', '').strip()
+
+    topics = Doan.objects.all()
+    fields = topics.values_list('linhvuc', flat=True).distinct()
+
+    if tenda:
+        topics = topics.filter(tenda__icontains=tenda)
+    if linhvuc:
+        topics = topics.filter(linhvuc__iexact=linhvuc)
     context = {
         'topics': topics,
+        'fields': fields,
+        'userTopic': userTopic,
     }
     return render(request, 'app/topic.html', context)
 
@@ -33,11 +80,8 @@ def regist_topic(request):
     topicId = data['topicId']
     action = data['action']
     topic = Doan.objects.get(mada=topicId)
-    # Handle the registration logic here
     user = request.user
-    
     if action == 'register':
-        # Register the user for the topic
         try:
             Dangky.objects.create(
                 mada=topic,
@@ -95,3 +139,31 @@ def update_topic(request):
                 return JsonResponse({"status": "error", "message": f"Đã xảy ra lỗi: {str(e)}"})
         else:
             return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
+
+def result(request):
+    user = request.user
+    diemthanhvien = (Diemthanhvien.objects
+                        .filter(mabb__mahv=user.hocvien.mahv)  
+                        .select_related("matv__magv")    
+                        .values(
+                            hoten=F("matv__magv__hoten"),        
+                            vaitro=F("matv__vaitro"),           
+                            diemso=F("diem")
+                        )
+    )
+    ketqua = Ketquabaove.objects.filter(mabb__mahv=user.hocvien).first()
+    thongtindoan = (
+    Dangky.objects
+        .filter(mahv=user.hocvien.mahv)
+        .select_related("mahv", "mada__mahd")
+        .values(
+            hoten=F("mahv__hoten"), 
+            tenda=F("mada__tenda"),
+            tenhd=F("mada__mahd__tenhd"), 
+        ).first()
+    )
+    context = {'diemthanhvien': diemthanhvien, 'thongtindoan': thongtindoan, 'ketqua': ketqua}
+    return render(request, 'app/result.html', context)
+
+def contact(request):
+    return render(request, 'app/contact.html')

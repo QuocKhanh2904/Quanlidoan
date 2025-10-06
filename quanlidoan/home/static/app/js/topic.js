@@ -1,22 +1,22 @@
+function openModal(id, name, field, startDate, endDate, desc) {
+    document.getElementById('modal-id').innerText = id;
+    document.getElementById('modal-name').innerText = name;
+    document.getElementById('modal-field').innerText = field;
+    document.getElementById('modal-start-date').innerText = formatDate(startDate);
+    document.getElementById('modal-end-date').innerText = formatDate(endDate);
+    document.getElementById('modal-desc').innerText = desc;
 
-
-function openModal(mada, tenda, linhvuc, giangvien, mota) {
-    document.getElementById("modal").style.display = "block";
-    document.getElementById("modal-id").innerText = mada;
-    document.getElementById("modal-name").innerText = tenda;
-    document.getElementById("modal-field").innerText = linhvuc;
-    document.getElementById("modal-teacher").innerText = giangvien;
-    document.getElementById("modal-desc").innerText = mota;
+    var modal = new bootstrap.Modal(document.getElementById('topicModal'));
+    modal.show();
 }
 
-function closeModal() {
-    document.getElementById("modal").style.display = "none";
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');     // lấy ngày
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng +1 (JS bắt đầu từ 0)
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
-window.onclick = function (event) {
-    let modal = document.getElementById("modal");
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
-}
 

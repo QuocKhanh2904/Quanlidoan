@@ -25,4 +25,46 @@
 {% endblock banner-slider %}
 {% block main-content %}
 <h1>Welcome to the Home Page</h1>
+<!-- modal profile -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="profileModalLabel">Thông tin cá nhân</h5>
+
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><b>Mã học viên:</b> <span id="modal-id">{{ hocvien.mahv }}</span></p>
+        <p><b>Họ tên:</b> <span id="modal-name">{{ hocvien.hoten }}</span></p>
+        <p><b>Email:</b> <span id="modal-email">{{ hocvien.email }}</span></p>
+        <p><b>Số điện thoại:</b> <span id="modal-field">{{ hocvien.sodienthoai }}</span></p>
+        <p><b>Lớp:</b> <span id="modal-start-date">{{ hocvien.lop }}</span></p>
+        <b>Đổi mật khẩu:</b>
+        <form id="changePasswordForm" method="post" id="changePasswordForm">
+          {% csrf_token %}
+          <div id="alertBox" class="alert alert-success text-center" role="alert" style="display:none;">
+            Thao tác thành công!
+          </div>
+
+          <div class="mb-3">
+            <input type="password" class="form-control" id="currentPassword" name="currentPassword"
+              placeholder="Mật khẩu hiện tại" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Mật khẩu mới"
+              required>
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword"
+              placeholder="Xác nhận mật khẩu mới" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Đổi mật khẩu</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'app/js/home.js' %}"></script>
+<!-- modal profile -->
 {% endblock main-content %}

@@ -11,4 +11,8 @@ urlpatterns = [
     path('submit_report/', views.submit_report, name='submit_report'),
     path('submit_topic/', views.submit_topic, name='submit_topic'),
     path('update_topic/', views.update_topic, name='update_topic'),
+    path('result/', views.result, name='result'),
+    path('contact/', views.contact, name='contact'),
+    path('change_password/', views.change_password, name='change_password'),
+    path('logout/', views.logout_view, name='logout'),
 ]
