@@ -77,7 +77,7 @@ def register_topic(request):
 
 def regist_topic(request):
     data = json.loads(request.body)
-    topicId = data['topicId']
+    topicId = data.get('topicId')
     topic = Doan.objects.get(mada=topicId)
     user = request.user
     try:
@@ -99,24 +99,25 @@ def report_progress(request):
     return render(request, 'app/report_progress.html', context)
 
 def submit_report(request):
-    mota = request.POST.get('motacongviec', '').strip()
-    filebaocao = request.FILES.get('filebaocao')
-    user = request.user
-    doan = Doan.objects.filter(dangky__mahv=user.hocvien).first()
-    
-    if doan:
-        try:
-            Tiendo.objects.create(
-                mada=doan,
-                file=filebaocao,
-                motacongviec=mota,
-                ngaycapnhat=timezone.now()
-            )
-            return JsonResponse({"status": "success", "message": "Báo cáo đã được gửi!"})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": f"Gửi báo cáo thất bại: {str(e)}"})
-    else:
-        return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
+    if request.method == 'POST':
+        mota = request.POST.get('motacongviec', '').strip()
+        filebaocao = request.FILES.get('filebaocao')
+        user = request.user
+        doan = Doan.objects.filter(dangky__mahv=user.hocvien).first()
+        
+        if doan:
+            try:
+                Tiendo.objects.create(
+                    mada=doan,
+                    file=filebaocao,
+                    motacongviec=mota,
+                    ngaycapnhat=timezone.now()
+                )
+                return JsonResponse({"status": "success", "message": "Báo cáo đã được gửi!"})
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": f"Gửi báo cáo thất bại: {str(e)}"})
+        else:
+            return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
 
 def submit_topic(request):
     doan = Doan.objects.filter(dangky__mahv=request.user.hocvien).first()

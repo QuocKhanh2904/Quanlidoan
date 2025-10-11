@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 var button = document.getElementById("submitReport");
 
-button.addEventListener("click", function () {
+button.addEventListener("click", function (event) {
+    event.preventDefault();
     var motacongviec = document.getElementById("motacongviec").value.trim();
     var filebaocao = document.getElementById("filebaocao").files[0];
     if (!motacongviec || !filebaocao) {
