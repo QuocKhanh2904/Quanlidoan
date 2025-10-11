@@ -32,7 +32,7 @@ function registerTopic(topicId, action, button) {
     button.innerHTML = "⏳ Đang đăng ký...";
     button.disabled = true;
 
-    fetch('/topic/regist_topic/', {
+    fetch("/student/topic/regist_topic/", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (registerBtn) {
         registerBtn.addEventListener("click", function () {
-            const topicId = this.getAttribute("data-topic-id");
+            const topicId = this.getAttribute("data-topicid");
             const action = this.getAttribute("data-action");
             registerTopic(topicId, action, this);
         });

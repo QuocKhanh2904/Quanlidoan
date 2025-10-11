@@ -78,20 +78,18 @@ def register_topic(request):
 def regist_topic(request):
     data = json.loads(request.body)
     topicId = data['topicId']
-    action = data['action']
     topic = Doan.objects.get(mada=topicId)
     user = request.user
-    if action == 'register':
-        try:
-            Dangky.objects.create(
-                mada=topic,
-                mahv=user.hocvien,
-                ngaydk=timezone.now(),
-                trangthai='1'
-            )
-            return JsonResponse({"status": "success", "message": "Đăng ký thành công!"})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": f"Đăng ký thất bại: {str(e)}"})
+    try:
+        Dangky.objects.create(
+            mada=topic,
+            mahv=user.hocvien,                
+            ngaydk=timezone.now(),
+            trangthai='1'
+        )
+        return JsonResponse({"status": "success", "message": "Đăng ký thành công!"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Đăng ký thất bại: {str(e)}"})
 
 def report_progress(request):
     user = request.user

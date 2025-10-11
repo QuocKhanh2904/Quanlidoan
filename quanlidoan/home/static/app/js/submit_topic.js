@@ -28,7 +28,7 @@ if (button) {
         formData.append("action", action);
         formData.append("filedoan", filedoan);
 
-        fetch('/update_topic/', {
+        fetch('/student/update_topic/', {
             method: 'POST',
             body: formData,
             headers: {

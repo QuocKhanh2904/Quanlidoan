@@ -26,7 +26,7 @@ button.addEventListener("click", function () {
     formData.append("motacongviec", motacongviec);
     formData.append("filebaocao", filebaocao);
 
-    fetch('/submit_report/', {
+    fetch('/student/submit_report/', {
         method: 'POST',
         body: formData,
         headers: {
