@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import connection
-
+from django.core.files.storage import default_storage
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -26,6 +26,25 @@ class Dangky(models.Model):
     mada = models.ForeignKey('Doan', models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
     mahv = models.ForeignKey('Hocvien', models.DO_NOTHING, db_column='MaHV', blank=True, null=True)
 
+    def hvdk_list(mada):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetHocVienByDoAn @MaDA = %s", [mada])
+            rows = dictfetchall(cursor)
+        return rows
+    
+    def dangky_list(mahv):
+        with connection.cursor() as cursor:
+            cursor.execute("sp_GetDangKyByHocVien @mahv = %s", [mahv])
+            rows = dictfetchall(cursor)
+        return rows
+    
+    def dangky_create_raw(mada, mahv, trangthai, ngaydk):
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO DANGKY (MaDA, MaHV, TrangThai, NgayDK) VALUES (%s, %s, %s, %s)", [mada, mahv, trangthai or None, ngaydk])
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            new_id = cursor.fetchone()[0]
+            return new_id
+
     class Meta:
         managed = False
         db_table = 'DANGKY'
@@ -35,6 +54,12 @@ class Diemthanhvien(models.Model):
     matv = models.ForeignKey('Thanhvienhoidong', models.DO_NOTHING, db_column='MaTV')
     mabb = models.ForeignKey(Bienban, models.DO_NOTHING, db_column='MaBB')
     diem = models.FloatField(db_column='Diem', blank=True, null=True)
+
+    def diemthanhvien_list(mahv):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetDiemThanhVienByMaHV @MaHV = %s", [mahv])
+            rows = dictfetchall(cursor)
+        return rows
 
     class Meta:
         managed = False
@@ -60,20 +85,11 @@ class Doan(models.Model):
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
 
-    def get_Doan(trangthai):
+    def doan_list(mada=None, tenda=None, linhvuc=None):
         with connection.cursor() as cursor:
-            cursor.execute('''SELECT 
-                                DOAN.MaDA   AS mada,
-                                DOAN.TenDA  AS tenda,
-                                DOAN.LinhVuc AS linhvuc,
-                                GIANGVIEN.HoTen AS giangvien,
-                                DOAN.MoTa   AS mota
-                            FROM DOAN
-                            JOIN GIANGVIEN ON DOAN.MaGV = GIANGVIEN.MaGV
-                            WHERE TrangThai = %s
-                            ''', [trangthai])
-            Doan = dictfetchall(cursor)
-        return Doan
+            cursor.execute("EXEC sp_GetDoAn_Available @MaDA = %s, @TenDA = %s, @LinhVuc = %s", [mada or None, tenda or None, linhvuc or None])
+            rows = dictfetchall(cursor)
+        return rows
 
     class Meta:
         managed = False
@@ -81,8 +97,8 @@ class Doan(models.Model):
 
 
 class Giangvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, db_column='magv')
-    magv = models.AutoField(db_column='MaGV', primary_key=True) #AUTO
+    magv = models.AutoField(db_column='MaGV', primary_key=True)  # AUTO
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', db_column='UserID')  # ✔️ Liên kết tài khoản
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
@@ -94,8 +110,8 @@ class Giangvien(models.Model):
 
 
 class Hocvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, db_column='mahv')
-    mahv = models.AutoField(db_column='MaHV', primary_key=True)
+    mahv = models.AutoField(db_column='MaHV', primary_key=True) 
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, db_column='UserID')
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
@@ -104,7 +120,6 @@ class Hocvien(models.Model):
     class Meta:
         managed = False
         db_table = 'HOCVIEN'
-
 
 class Hoidong(models.Model):
     mahd = models.AutoField(db_column='MaHD', primary_key=True)
@@ -123,6 +138,12 @@ class Huongdandoan(models.Model):
     magv = models.ForeignKey(Giangvien, models.DO_NOTHING, db_column='MaGV')
     vaitro = models.CharField(db_column='VaiTro', max_length=50, blank=True, null=True)
 
+    def gvhd_list(mada):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetGiangVienHuongDanTheoMaDA @MaDA = %s", [mada])
+            rows = dictfetchall(cursor)
+        return rows
+
     class Meta:
         managed = False
         db_table = 'HUONGDANDOAN'
@@ -135,6 +156,12 @@ class Ketquabaove(models.Model):
     danhgia = models.CharField(db_column='DanhGia', max_length=200, blank=True, null=True)
     xeploai = models.CharField(db_column='XepLoai', max_length=50, blank=True, null=True)
     mabb = models.OneToOneField(Bienban, models.DO_NOTHING, db_column='MaBB', blank=True, null=True)
+
+    def ketqua_list(mahv):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetKetQuaBaoVeByMaHV @MaHV = %s", [mahv])
+            rows = dictfetchall(cursor)
+        return rows
 
     class Meta:
         managed = False
@@ -160,6 +187,23 @@ class Tiendo(models.Model):
     nguoikiemtra = models.CharField(db_column='NguoiKiemTra', max_length=100, blank=True, null=True)
     mada = models.ForeignKey(Doan, models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
     file = models.FileField(db_column='File', upload_to='baocao/', blank=True, null=True)
+
+    def tiendo_list(mada):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetTiendoByMaDA @MaDA = %s", [mada])
+            rows = dictfetchall(cursor)
+        return rows
+    
+    def tiendo_create_raw(mada, file, mota, ngaycapnhat):
+        file_path = None
+        if file:
+            file_path = default_storage.save(f'baocao/{file.name}', file)
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO TIENDO (MaDA, [file], motacongviec, ngaycapnhat) VALUES (%s, %s, %s, %s)", [mada, file_path, mota, ngaycapnhat])
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            new_id = cursor.fetchone()[0]
+            return new_id
+        
     class Meta:
         managed = False
         db_table = 'TIENDO'

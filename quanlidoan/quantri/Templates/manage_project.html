@@ -1,0 +1,285 @@
+{% extends 'base.html' %} {% load static %}
+
+{% block manage-project %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Quản lý đồ án</h3>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateProject">
+      + Thêm đồ án
+    </button>
+  </div>
+
+  <!-- bộ lọc -->
+  <form id="filterForm" method="get" class="row g-3 mb-3">
+    <div class="col-md-3">
+      <label class="form-label">Tên đồ án</label>
+      <input type="text" class="form-control" name="tenda" value="{{ tenda_selected|default_if_none:''}}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Trạng thái</label>
+      <select class="form-select" name="trangthai">
+        <option value="">-- Tất cả --</option>
+        {% if trangthai_selected == 0 %}<option value="0" selected>Chờ duyệt</option>{% else %}<option value="0">Chờ
+          duyệt
+        </option>{% endif %}
+        {% if trangthai_selected == 1 %}<option value="1" selected>Đã duyệt</option>{% else %}<option value="1">Đã duyệt
+        </option>{% endif %}
+        {% if trangthai_selected == 2 %}<option value="2" selected>Đã đăng ký</option>{% else %}<option value="2">Đã
+          đăng ký
+        </option>{% endif %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Hội đồng</label>
+      <select class="form-select" name="mahd">
+        <option value="">-- Tất cả --</option>
+        {% for hd in hoidongs %}
+        {% if mahd_selected == hd.mahd %}
+        <option value="{{ hd.mahd }}" selected>{{ hd.tenhd }}</option>
+        {% else %}
+        <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Lọc</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Mã</th>
+          <th>Tên đồ án</th>
+          <th>Trạng thái</th>
+          <th>SL tối đa</th>
+          <th>Thời gian</th>
+          <th>Hội đồng</th>
+          <th class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for da in doans %}
+        <tr>
+          <td>{{ da.mada }}</td>
+          <td class="fw-semibold">{{ da.tenda }}</td>
+          <td>
+            {% if da.trangthai == "0" %}
+            <span class="badge bg-danger">Chờ duyệt</span>
+            {% elif da.trangthai == "1" %}
+            <span class="badge bg-success">Đã duyệt</span>
+            {% elif da.trangthai == "2" %}
+            <span class="badge bg-warning text-dark">Đã đăng ký</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ da.trangthai|default:"-" }}</span>
+            {% endif %}
+          </td>
+          <td>{{ da.soluongtoida|default:"-" }}</td>
+          <td><small>{{ da.ngaybd|date:"d/m/Y" }} → {{ da.ngaykt|date:"d/m/Y" }}</small></td>
+          <td>{{ da.tenhd|default:"-" }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-primary btn-edit" data-bs-toggle="modal"
+                data-bs-target="#modalEditProject" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}"
+                data-trangthai="{{ da.trangthai|default_if_none:'' }}"
+                data-soluongtoida="{{ da.soluongtoida|default_if_none:'' }}" data-ngaybd="{{ da.ngaybd|date:'Y-m-d' }}"
+                data-ngaykt="{{ da.ngaykt|date:'Y-m-d' }}" data-linhvuc="{{ da.linhvuc|default_if_none:''|escapejs }}"
+                data-mota="{{ da.mota|default_if_none:''|escapejs }}"
+                data-file="{% if da.filepath %}/media/{{ da.filepath }}{% endif %}"
+                data-mahd="{{ da.mahd|default_if_none:'' }}">
+                Sửa
+              </button>
+
+              <button class="btn btn-sm btn-outline-danger btn-delete" data-bs-toggle="modal" id="deleteProjectButton"
+                data-bs-target="#modalDeleteProject" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}"
+                data-file="{{da.filedoan}}">
+                Xóa
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">Không có dữ liệu</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- modal thêm đồ án -->
+<div class="modal fade" id="modalCreateProject" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="createProjectForm" method="post" enctype="multipart/form-data" class="modal-content"
+      data-url="{% url 'doan_create' %}">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="createProjectLabel">Thêm đồ án</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label for="create_tenda" class="form-label">Tên đồ án</label>
+            <input type="text" class="form-control" name="tenda" id="create_tenda" required>
+          </div>
+          <div class="col-md-4">
+            <label for="create_trangthai" class="form-label">Trạng thái</label>
+            <select class="form-select" name="trangthai" id="create_trangthai">
+              <option value="0">Chờ duyệt</option>
+              <option value="1">Đã duyệt</option>
+              <option value="2">Đã đăng ký</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="create_soluongtoida" class="form-label">SL tối đa</label>
+            <input type="number" class="form-control" name="soluongtoida" id="create_soluongtoida">
+          </div>
+          <div class="col-md-3">
+            <label for="create_ngaybd" class="form-label">Ngày bắt đầu</label>
+            <input type="date" class="form-control" name="ngaybd" id="create_ngaybd">
+          </div>
+          <div class="col-md-3">
+            <label for="create_ngaykt" class="form-label">Ngày kết thúc</label>
+            <input type="date" class="form-control" name="ngaykt" id="create_ngaykt">
+          </div>
+          <div class="col-md-3">
+            <label for="create_linhvuc" class="form-label">Lĩnh vực</label>
+            <input type="text" class="form-control" name="linhvuc" id="create_linhvuc">
+          </div>
+          <div class="col-md-6">
+            <label for="create_mahd" class="form-label">Hội đồng</label>
+            <select class="form-select" name="mahd" id="select">
+              <option value="">-- Chọn --</option>
+              {% for hd in hoidongs %}
+              <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label for="create_mota" class="form-label">Mô tả</label>
+            <textarea class="form-control" name="mota" id="create_mota" rows="4"></textarea>
+          </div>
+          <div class="col-12">
+            <label for="create_file" class="form-label">Tệp đính kèm</label>
+            <input type="file" class="form-control" name="file" id="create_file">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- modal sửa đồ án -->
+<div class="modal fade" id="modalEditProject" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="editProjectForm" method="post" enctype="multipart/form-data" class="modal-content"
+      data-url='{% url "doan_update" %}'>
+      {% csrf_token %}
+      <input type="hidden" name="mada" id="edit_mada">
+      <div class="modal-header">
+        <h5 class="modal-title">Sửa đồ án</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Tên đồ án</label>
+            <input type="text" class="form-control" name="tenda" id="edit_tenda" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" name="trangthai" id="edit_trangthai">
+              <option value="0">Chờ duyệt</option>
+              <option value="1">Đã duyệt</option>
+              <option value="2">Đã đăng ký</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">SL tối đa</label>
+            <input type="number" class="form-control" name="soluongtoida" id="edit_soluongtoida">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Ngày bắt đầu</label>
+            <input type="date" class="form-control" name="ngaybd" id="edit_ngaybd">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Ngày kết thúc</label>
+            <input type="date" class="form-control" name="ngaykt" id="edit_ngaykt">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Lĩnh vực</label>
+            <input type="text" class="form-control" name="linhvuc" id="edit_linhvuc">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Hội đồng</label>
+            <select class="form-select" name="mahd" id="edit_mahd">
+              <option value="">-- Chọn --</option>
+              {% for hd in hoidongs %}
+              <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="mota" id="edit_mota" rows="4"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Tệp hiện tại</label><br>
+            <a id="current_file_link" href="#" class="d-inline-block mb-2" target="_blank" style="display:none">📎 Xem
+              tệp</a>
+            <span id="no_file_text" class="text-muted">Chưa có tệp</span>
+            <input type="file" class="form-control" name="file" id="edit_file">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="remove_file" name="remove_file" value="1">
+              <label class="form-check-label" for="remove_file">Xóa tệp hiện tại</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" type="submit">Cập nhật</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- modal xóa đồ án -->
+<div class="modal fade" id="modalDeleteProject" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="deleteProjectForm" method="post" class="modal-content" data-url="{% url 'doan_delete' %}">
+      {% csrf_token %}
+      <input type="hidden" name="mada" id="delete_mada">
+      <input type="hidden" name="file" id="delete_file">
+      <div class="modal-header">
+        <h5 class="modal-title">Xóa đồ án</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Bạn có chắc chắn muốn xóa đồ án <strong id="delete_name">...</strong> (Mã: <span id="delete_id">?</span>)?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-danger" type="submit">Xóa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:1080;">
+  <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/manage_project.js' %}"></script>
+{% endblock manage-project %}

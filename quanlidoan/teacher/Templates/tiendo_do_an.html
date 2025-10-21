@@ -1,0 +1,76 @@
+{% extends "teacher.html" %}
+{% block content %}
+<div class="container mt-4 doan-container">
+  <!-- Thông tin tổng quan -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h4 class="card-title text-success">{{ da.TenDA }}</h4>
+      <p class="card-text text-muted mb-1">
+        <b>Lĩnh vực:</b> {{ da.LinhVuc|default:"-" }}
+      </p>
+      <p class="card-text mb-1">
+        <b>Giảng viên hướng dẫn:</b> {{ da.TenGV|default:"Chưa phân công" }}
+      </p>
+      <p class="card-text mb-1">
+        <b>Mô tả:</b> {{ da.MoTa|default:"(Không có mô tả)" }}
+      </p>
+
+      <div class="mt-3">
+        <b>Tiến độ trung bình:</b>
+        <div class="progress" style="height: 10px; width: 50%;">
+          <div class="progress-bar bg-success" style="width: '{{ da.TienDoTB|floatformat:0 }}%'">
+          </div>
+        </div>
+        <small>{{ da.TienDoTB|floatformat:0 }}%</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nút thao tác -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5>Lịch sử cập nhật tiến độ</h5>
+    <a class="btn btn-success btn-sm" href="{% url 'gv_tiendo_them' da.MaDA %}">+ Thêm tiến độ</a>
+  </div>
+
+  <!-- Bảng lịch sử -->
+  <div class="table-responsive shadow-sm bg-white rounded">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Ngày cập nhật</th>
+          <th>Mô tả công việc</th>
+          <th class="text-center">% Hoàn thành</th>
+          <th>Người kiểm tra</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for td in tiendos %}
+        <tr>
+          <td>{{ td.NgayCapNhat|date:"Y-m-d" }}</td>
+          <td>{{ td.MoTaCongViec|default:"(Không ghi chú)" }}</td>
+          <td class="text-center">
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar bg-success" style="width: '{{ td.TienDoPhanTram|default:0 }}%'"></div>
+            </div>
+            <small>{{ td.TienDoPhanTram|default:"0" }}%</small>
+          </td>
+          <td>{{ td.NguoiKiemTra|default:"-" }}</td>
+          <td class="text-nowrap">
+            <a href="{% url 'gv_tiendo_sua' td.MaTD %}" class="btn btn-sm btn-outline-primary">✏️</a>
+            <a href="{% url 'gv_tiendo_xoa' td.MaTD %}" class="btn btn-sm btn-outline-danger">🗑️</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">Chưa có tiến độ nào được cập nhật.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Quay lại -->
+  <div class="mt-3">
+    <a class="btn btn-outline-secondary" href="{% url 'gv_doan_list' %}">← Quay lại</a>
+  </div>
+</div>
+{% endblock %}

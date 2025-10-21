@@ -11,7 +11,8 @@
             <i class="bi bi-journal-text me-2"></i>Thông tin đồ án
         </div>
         <div class="card-body">
-            <p><strong>Tên học viên:</strong> {{ thongtindoan.hoten }}</p>
+            <p><strong>Tên học viên:</strong> {{ thongtindoan.tenhv }}</p>
+            <p><strong>Lớp:</strong> {{ thongtindoan.lop }}</p>
             <p><strong>Tên đề tài:</strong> {{ thongtindoan.tenda }}</p>
             <p><strong>Hội đồng chấm:</strong> {{ thongtindoan.tenhd }}</p>
         </div>
@@ -38,7 +39,7 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ tv.tengv }}</td>
                         <td>{{ tv.vaitro }}</td>
-                        <td>{{ tv.diemso }}</td>
+                        <td>{{ tv.diem }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

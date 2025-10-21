@@ -1,0 +1,43 @@
+{% extends "teacher.html" %}
+{% load static %}
+{% block danh_sach_do_an %}
+<link rel="stylesheet" href="{% static 'app/css/doan.css' %}">
+
+<div class="container mt-4 doan-container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>📄 Danh sách học viên & đề tài đã đăng ký</h4>
+    <a href="{% url 'danh_sach_do_an' %}" class="btn btn-secondary">← Về danh sách đồ án</a>
+  </div>
+
+  <form class="d-flex gap-2 mb-3" method="get">
+    <input class="form-control" name="q" value="{{ q }}" placeholder="Tìm theo học viên / đề tài / giảng viên / hội đồng">
+    <button class="btn btn-outline-primary">Lọc</button>
+    <span class="align-self-center text-muted">Tổng: {{ tong }}</span>
+  </form>
+
+  <div class="table-responsive shadow-sm rounded bg-white">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width:28%">Học viên</th>
+          <th style="width:32%">Đề tài</th>
+          <th style="width:20%">Giảng viên hướng dẫn</th>
+          <th style="width:20%">Hội đồng</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.HocVien }}</td>
+          <td>{{ r.TenDA }}</td>
+          <td>{{ r.GiangVien|default:"Chưa phân công" }}</td>
+          <td>{{ r.TenHD|default:"Chưa có" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted">Không có dữ liệu phù hợp.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

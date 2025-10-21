@@ -1,0 +1,241 @@
+.doan-container .stat-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+}
+.stat-label {
+  font-size: 14px;
+  color: gray;
+}
+.tags {
+  margin-top: 5px;
+}
+.tags .badge {
+  margin-right: 3px;
+}
+.btn-add {
+  background: #007bff;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 15px;
+  text-decoration: none;
+}
+.btn-add:hover {
+  background: #0056b3;
+}
+
+:root{
+  --bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --primary-600: #1d4ed8;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --pending: #64748b;
+  --approved: #2563eb;
+  --unknown: #9ca3af;
+  --shadow: 0 10px 30px rgba(2,6,23,0.06);
+  --radius: 14px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Container tổng quát cho các trang đồ án */
+.doan-container {
+  max-width: 1200px;
+}
+
+/* ===========================
+   Cards & Shadow
+   =========================== */
+.card,
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card .card-body {
+  padding: 1.25rem 1.25rem;
+}
+
+/* ===========================
+   Header / Toolbar / Buttons
+   =========================== */
+.btn-add {
+  background: var(--primary);
+  color: #fff !important;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 0;
+  transition: transform .06s ease, background .2s ease;
+}
+.btn-add:hover { background: var(--primary-600); transform: translateY(-1px); }
+.btn-add:active { transform: translateY(0); }
+
+.btn-outline-primary, .btn-outline-secondary, .btn-outline-danger {
+  border-radius: 10px;
+}
+
+/* Icons nhỏ trên bảng */
+.table .btn.btn-sm { padding: .35rem .55rem; }
+
+/* Inputs */
+.form-control, .form-select, textarea.form-control {
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.12);
+  box-shadow: none;
+}
+.form-control:focus, .form-select:focus, textarea.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 .25rem rgba(37, 99, 235, .1);
+}
+
+/* Label */
+.form-label { font-weight: 600; color: #111827; }
+
+/* ===========================
+   Stats (trang danh sách)
+   =========================== */
+.stat-card {
+  padding: 1.1rem;
+  text-align: center;
+}
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.stat-label {
+  margin-top: .35rem;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+/* ===========================
+   Table (danh sách)
+   =========================== */
+.table {
+  margin-bottom: 0;
+}
+.table thead th {
+  background: #f8fafc !important;
+  color: #0f172a;
+  font-weight: 700;
+  border-bottom-width: 1px;
+}
+.table-hover tbody tr:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+.table td, .table th { vertical-align: middle; }
+
+/* Ô mô tả ngắn gọn hơn */
+.table td:nth-child(6){
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================
+   Status Badges
+   =========================== */
+.status {
+  padding: .25rem .55rem;
+  font-size: .85rem;
+  border-radius: 999px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  border: 1px solid transparent;
+}
+.status.pending   { color:#0f172a; background:#e2e8f0; border-color:#cbd5e1; }  /* Chưa duyệt */
+.status.approved  { color:#1e40af; background:#dbeafe; border-color:#bfdbfe; }  /* Đã duyệt */
+.status.warning   { color:#92400e; background:#fef3c7; border-color:#fde68a; }  /* Yêu cầu sửa */
+.status.success   { color:#065f46; background:#d1fae5; border-color:#a7f3d0; }  /* Đã hoàn thành */
+.status.unknown   { color:#374151; background:#e5e7eb; border-color:#d1d5db; }  /* Không xác định */
+
+/* ===========================
+   Detail Page
+   =========================== */
+.card-title {
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+dl.row dt { color: var(--muted); font-weight: 600; }
+dl.row dd { margin-bottom: .6rem; }
+
+/* Tài liệu đính kèm / side card */
+.attach-actions .btn {
+  width: 100%;
+}
+
+/* ===========================
+   Forms (Thêm / Sửa)
+   =========================== */
+form.card { border-radius: var(--radius); }
+textarea.form-control { resize: vertical; }
+
+/* nhóm nút cuối form */
+.form-actions .btn {
+  min-width: 160px;
+}
+
+/* ===========================
+   Delete Confirm
+   =========================== */
+.text-danger { color: var(--danger) !important; }
+.alert-danger {
+  border-radius: 12px;
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* ===========================
+   Helpers
+   =========================== */
+.shadow-sm.rounded.bg-white {
+  border-radius: var(--radius) !important;
+}
+
+.text-muted { color: var(--muted) !important; }
+
+.badge {
+  border-radius: 10px;
+}
+
+/* khoảng cách nhỏ gọn ở phần toolbar */
+.gap-2 > * { margin-right: .35rem; }
+.gap-2 > *:last-child { margin-right: 0; }
+
+/* Responsive tinh chỉnh */
+@media (max-width: 768px){
+  .stat-card { margin-bottom: .75rem; }
+  .btn-add { width: 100%; }
+  .table-responsive { border-radius: var(--radius); }
+}
+
+.progress {
+  background: #f3f4f6;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 8px;
+}
+.progress-bar {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  height: 100%;
+  transition: width 0.3s ease;
+}

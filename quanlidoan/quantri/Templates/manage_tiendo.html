@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block manage-tiendo %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Quản lý tiến độ đồ án</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTiendoModal">
+            <i class="bi bi-plus-circle"></i> Thêm tiến độ
+        </button>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form class="row g-3" id="filterForm">
+                <div class="col-md-4">
+                    <label class="form-label">Đồ án</label>
+                    <select class="form-select" name="mada">
+                        <option value="">-- Chọn đồ án --</option>
+                        {% for da in doans %}
+                        {% if mada_selected == da.mada %}<option value="{{ da.mada }}" selected>{{ da.tenda }}</option>
+                        {% else %} <option value="{{ da.mada }}">{{ da.tenda }}</option>{% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-secondary">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách tiến độ -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Mô tả công việc</th>
+                            <th>Tiến độ (%)</th>
+                            <th>Người kiểm tra</th>
+                            <th>Ngày cập nhật</th>
+                            <th>File</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tiendoTableBody">
+                        {% for td in tiendos %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ td.motacongviec }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" style="width: {{ td.tiendophantram }}%">
+                                        {{ td.tiendophantram }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ td.nguoikiemtra }}</td>
+                            <td>{{ td.ngaycapnhat|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if td.file %}
+                                <a href="{{ td.file.url }}" class="btn btn-sm btn-outline-success" target="_blank">
+                                    <i class="bi bi-paperclip"></i> File
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Không có</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                    data-bs-target="#viewTiendoModal" data-id="{{ td.matd }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#editTiendoModal" data-id="{{ td.matd }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-id="{{ td.matd }}" id="btnDeleteTiendo">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Chưa có tiến độ nào</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm tiến độ -->
+<div class="modal fade" id="addTiendoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="addTiendoForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Thêm tiến độ mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Đồ án<span class="text-danger">*</span></label>
+                        <select class="form-select" name="mada" required>
+                            {% for da in doans %}
+                            <option value="{{ da.mada }}">{{ da.tenda }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Mô tả công việc<span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="motacv" rows="3" required></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tiến độ (%)<span class="text-danger">*</span></label>
+                        <input type="number" name="tiendo" class="form-control" min="0" max="100" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Người kiểm tra<span class="text-danger">*</span></label>
+                        <input type="text" name="nguoikiemtra" class="form-control" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">File đính kèm</label>
+                        <input type="file" name="file" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết -->
+<div class="modal fade" id="viewTiendoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Chi tiết tiến độ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="tiendoDetailContent" class="px-2">
+                    <p class="text-muted">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa tiến độ -->
+<div class="modal fade" id="editTiendoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editTiendoForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Cập nhật tiến độ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <input type="hidden" name="matd" id="edit_matd">
+
+                    <div class="col-md-12">
+                        <label class="form-label">Mô tả công việc<span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="edit_motacv" name="motacv" rows="3" required></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Tiến độ (%)</label>
+                        <input type="number" id="edit_tiendo" name="tiendo" class="form-control" min="0" max="100"
+                            required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Người kiểm tra<span class="text-danger">*</span></label>
+                        <input type="text" id="edit_nguoikiemtra" name="nguoikiemtra" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">File đính kèm (chọn lại nếu muốn thay)</label>
+                        <input type="file" id="edit_file" name="file" class="form-control">
+                    </div>
+
+                    <div id="currentFileContainer" class="text-muted small mt-2"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/manage_tiendo.js' %}"></script>
+{% endblock %}

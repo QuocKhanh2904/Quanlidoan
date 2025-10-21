@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block manage-dangky %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Quản lý đăng ký đồ án</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDangKyModal">
+            <i class="bi bi-plus-circle"></i> Thêm đăng ký
+        </button>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form class="row g-3" id="filterForm" method="get">
+                <div class="col-md-4">
+                    <label class="form-label">Đồ án</label>
+                    <select class="form-select" name="mada">
+                        <option value="">-- Chọn đồ án --</option>
+                        {% for da in doans %}
+                        {% if mada_selected == da.mada %}<option value="{{ da.mada }}" selected>{{ da.tenda }}</option>
+                        {% else %} <option value="{{ da.mada }}">{{ da.tenda }}</option>{% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-secondary">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách đăng ký -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Học viên</th>
+                            <th>Đồ án</th>
+                            <th>Ngày đăng ký</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dk in dangkys %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ dk.mahv.hoten }}</td>
+                            <td>{{ dk.mada.tenda }}</td>
+                            <td>{{ dk.ngaydk|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if dk.trangthai == '1' %}
+                                <span class="badge bg-success">Đã duyệt</span>
+                                {% elif dk.trangthai == '0' %}
+                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                {% else %}
+                                <span class="badge bg-danger">Từ chối</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                    data-bs-target="#viewDangKyModal" data-id="{{ dk.madk }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#editDangKyModal" data-id="{{ dk.madk }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-id="{{ dk.madk }}" id="btnDeleteDangKy">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Chưa có đăng ký nào</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm đăng ký -->
+<div class="modal fade" id="addDangKyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="addDangKyForm">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Thêm đăng ký mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Lớp<span class="text-danger">*</span></label>
+                        <select id="selectLop" class="form-select" required>
+                            <option value="">-- Chọn lớp --</option>
+                            {% for lop in lop_list %}
+                            <option value="{{ lop }}">{{ lop }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Học viên<span class="text-danger">*</span></label>
+                        <select id="selectHocVien" name="mahv" class="form-select" required>
+                            <option value="">-- Chọn học viên --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Đồ án<span class="text-danger">*</span></label>
+                        <select class="form-select" name="mada" required>
+                            {% for da in doans %}
+                            <option value="{{ da.mada }}">{{ da.tenda }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày đăng ký<span class="text-danger">*</span></label>
+                        <input type="date" name="ngaydk" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="trangthai" class="form-select">
+                            <option value="0">Chờ duyệt</option>
+                            <option value="1">Đã duyệt</option>
+                            <option value="2">Từ chối</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem đăng ký -->
+<div class="modal fade" id="viewDangKyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Chi tiết đăng ký</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="dangkyDetailContent">
+                <p>Đang tải...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa đăng ký -->
+<div class="modal fade" id="editDangKyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editDangKyForm">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Chỉnh sửa đăng ký</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <input type="hidden" id="edit_madk" name="madk">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Học viên</label>
+                        <input type="text" id="edit_tenhv" name="tenhv" class="form-control" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Đồ án</label>
+                        <select id="edit_mada" name="mada" class="form-select" required>
+                            {% for da in doans %}
+                            <option value="{{ da.mada }}">{{ da.tenda }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày đăng ký</label>
+                        <input type="date" id="edit_ngaydk" name="ngaydk" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Trạng thái</label>
+                        <select id="edit_trangthai" name="trangthai" class="form-select">
+                            <option value="0">Chờ duyệt</option>
+                            <option value="1">Đã duyệt</option>
+                            <option value="2">Từ chối</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/manage_dangky.js' %}"></script>
+{% endblock %}

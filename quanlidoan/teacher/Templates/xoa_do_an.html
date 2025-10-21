@@ -1,0 +1,41 @@
+{% extends "teacher.html" %}
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <h4 class="text-danger mb-3">🗑️ Xóa đồ án #{{ doan.mada }}</h4>
+  <p>Bạn có chắc chắn muốn xóa đồ án sau? Hành động này không thể hoàn tác.</p>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-3">{{ doan.tenda }}</h5>
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Lĩnh vực</dt>
+        <dd class="col-sm-8">{{ doan.linhvuc|default:"-" }}</dd>
+
+        <dt class="col-sm-4">Giáo viên hướng dẫn</dt>
+        <dd class="col-sm-8">{{ doan.tengv|default:"Chưa phân công" }}</dd>
+
+        <dt class="col-sm-4">Trạng thái</dt>
+        <dd class="col-sm-8">
+          {% if doan.trangthai|stringformat:"s" == "1" %}Chưa duyệt
+          {% elif doan.trangthai|stringformat:"s" == "2" %}Đã duyệt
+          {% elif doan.trangthai|stringformat:"s" == "3" %}Yêu cầu sửa
+          {% elif doan.trangthai|stringformat:"s" == "4" %}Đã hoàn thành
+          {% else %}Không xác định{% endif %}
+        </dd>
+
+        <dt class="col-sm-4">Ngày gửi</dt>
+        <dd class="col-sm-8">{{ doan.ngaygui|date:"Y-m-d" }}</dd>
+
+        <dt class="col-sm-4">Số lượng tối đa</dt>
+        <dd class="col-sm-8">{{ doan.soluong|default:"-" }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <form method="post" class="d-flex gap-2">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">🗑️ Xác nhận xóa</button>
+    <a href="{% url 'danh_sach_do_an' %}" class="btn btn-secondary">Hủy</a>
+  </form>
+</div>
+{% endblock %}

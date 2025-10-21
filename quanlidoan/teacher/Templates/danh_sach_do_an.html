@@ -1,0 +1,79 @@
+{% extends "teacher.html" %}
+{% load static %}
+{% block danh_sach_do_an %}
+<link rel="stylesheet" href="{% static 'app/css/doan.css' %}">
+
+<div class="container mt-4 doan-container">
+  <!-- thống kê -->
+  <div class="row mb-4 text-center">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ tong_so_do_an }}</div><div class="stat-label">Tổng số đồ án</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ so_dang_thuc_hien }}</div><div class="stat-label">Đang thực hiện</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ so_hoan_thanh }}</div><div class="stat-label">Hoàn thành</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ so_bao_ve }}</div><div class="stat-label">Đã bảo vệ</div></div></div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control" placeholder="🔍 Tìm kiếm theo tên đồ án...">
+      <select class="form-select">
+        <option>Tất cả trạng thái</option>
+        <option>Đang thực hiện</option>
+        <option>Hoàn thành</option>
+      </select>
+    </div>
+    <a href="{% url 'them_do_an' %}" class="btn btn-add">+ Thêm đồ án mới</a>
+  </div>
+
+  <div class="table-responsive shadow-sm rounded bg-white">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Mã đồ án</th>
+          <th>Tên đồ án</th>
+          <th>Lĩnh vực</th>
+          <th>Trạng thái</th>
+          <th>Tiến độ</th>
+          <th>Mô tả</th>
+          <th>Ngày gửi</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doan in doans %}
+        <tr>
+          <td>{{ doan.mada }}</td>
+          <td>{{ doan.tenda }}</td>
+          <td>{{ doan.linhvuc|default:"-" }}</td>
+          <td>
+            {% if doan.trangthai|stringformat:"s" == "0" %}
+              <span class="status pending">Chưa duyệt</span>
+            {% elif doan.trangthai|stringformat:"s" == "1" %}
+              <span class="status approved">Đã duyệt</span>
+            {% elif doan.trangthai|stringformat:"s" == "2" %}
+              <span class="status warning">Đang thực hiện</span>
+            {% elif doan.trangthai|stringformat:"s" == "3" %}
+              <span class="status success">Đã hoàn thành</span>
+            {% else %}
+              <span class="status unknown">Không xác định</span>
+            {% endif %}
+          </td>
+          <td>
+            {{ doan.tiendo|floatformat:0 }}%
+          </td>
+
+          <td>{{ doan.mota|default:"-" }}</td>
+          <td>{{ doan.ngaygui|date:"Y-m-d" }}</td>
+          <td class="text-nowrap">
+            <a href="{% url 'chi_tiet_do_an' doan.mada %}" class="btn btn-sm btn-outline-secondary" title="Xem chi tiết">👁</a>
+            <a href="{% url 'sua_do_an' doan.mada %}" class="btn btn-sm btn-outline-primary" title="Sửa">✏️</a>
+            <a href="{% url 'xoa_do_an' doan.mada %}" class="btn btn-sm btn-outline-danger" title="Xóa">🗑️</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted">Chưa có đồ án nào</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

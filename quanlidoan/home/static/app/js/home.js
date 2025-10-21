@@ -36,5 +36,5 @@ function showAlert(message, type = "success") {
     alertBox.style.display = "block";
     setTimeout(() => {
         alertBox.style.display = "none";
-    }, 3000);
+    }, 5000);
 }

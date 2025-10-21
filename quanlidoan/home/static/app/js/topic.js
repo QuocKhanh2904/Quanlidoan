@@ -1,7 +1,8 @@
-function openModal(id, name, field, startDate, endDate, desc) {
+function openModal(id, name, field, hd, startDate, endDate, desc) {
     document.getElementById('modal-id').innerText = id;
     document.getElementById('modal-name').innerText = name;
     document.getElementById('modal-field').innerText = field;
+    document.getElementById('modal-hd').innerText = hd;
     document.getElementById('modal-start-date').innerText = formatDate(startDate);
     document.getElementById('modal-end-date').innerText = formatDate(endDate);
     document.getElementById('modal-desc').innerText = desc;

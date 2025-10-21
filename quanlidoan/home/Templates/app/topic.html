@@ -37,6 +37,8 @@
         <tr>
           <th scope="col">Mã đồ án</th>
           <th scope="col">Tên đồ án</th>
+          <th scope="col">Số HV tối đa</th>
+          <th scope="col">Đã đăng ký</th>
           <th scope="col">Chi tiết</th>
           <th scope="col">Đăng ký</th>
         </tr>
@@ -46,9 +48,11 @@
         <tr>
           <td>{{ topic.mada }}</td>
           <td>{{ topic.tenda }}</td>
+          <td>{{ topic.soluongtoida }}</td>
+          <td>{{ topic.soluongdangky }}</td>
           <td>
             <button class="btn btn-info btn-sm text-white"
-              onclick="openModal('{{topic.mada}}', '{{topic.tenda}}', '{{topic.linhvuc}}', '{{topic.ngaybd}}', '{{topic.ngaykt}}', '{{topic.mota}}')"
+              onclick="openModal('{{topic.mada}}', '{{topic.tenda}}', '{{topic.linhvuc}}', '{{topic.tenhd}}', '{{topic.ngaybd}}', '{{topic.ngaykt}}', '{{topic.mota}}')"
               data-bs-target="#topicModal">
               <i class="bi bi-info-circle"></i> Chi tiết
             </button>
@@ -83,6 +87,7 @@
           <p><b>Mã đồ án:</b> <span id="modal-id"></span></p>
           <p><b>Tên đồ án:</b> <span id="modal-name"></span></p>
           <p><b>Lĩnh vực:</b> <span id="modal-field"></span></p>
+          <p><b>Hội đồng:</b> <span id="modal-hd"></span></p>
           <p><b>Ngày bắt đầu:</b> <span id="modal-start-date"></span></p>
           <p><b>Ngày kết thúc:</b> <span id="modal-end-date"></span></p>
           <b>Mô tả:</b>

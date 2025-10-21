@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Giangvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', db_column='magv')
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', db_column='UserId')
     magv = models.AutoField(db_column='MaGV', primary_key=True) #AUTO
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
@@ -17,7 +17,7 @@ class Giangvien(models.Model):
 
 
 class Hocvien(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', db_column='mahv')
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', db_column='UserId')
     mahv = models.AutoField(db_column='MaHV', primary_key=True)
     hoten = models.CharField(db_column='HoTen', max_length=100, blank=True, null=True)
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)

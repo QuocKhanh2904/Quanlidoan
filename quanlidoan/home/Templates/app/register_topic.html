@@ -20,8 +20,22 @@
                 <div class="col-8">{{topic.linhvuc}}</div>
             </div>
             <div class="row mb-3">
-                <div class="col-4 fw-bold">Giảng viên HD:</div>
-                <div class="col-8">{{topic.magv__hoten}}</div>
+                <div class="col-4 fw-bold">Giảng viên hướng dẫn:</div>
+                {% for gv in gvhds %}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold"></div>
+                    <div class="col-4 fw-bold">Giảng viên {{gv.vaitro}}:</div>
+                    <div class="col-4">{{gv.hoten}} - {{gv.donvi}}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 fw-bold">Học viên đã đăng ký:</div>
+                {% for hv in hvdk %}
+                <div class="col-4 fw-bold"></div>
+                <div class="col-4 fw-bold">{{ hv.hoten }}</div>
+                <div class="col-4">{{ hv.lop }}</div>
+                {% endfor %}
             </div>
             <div class="row mb-3">
                 <div class="col-4 fw-bold">Mô tả:</div>

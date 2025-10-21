@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block manage-baove %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Quản lý bảo vệ đồ án</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBienBanModal">
+            <i class="bi bi-plus-circle"></i> Thêm biên bản bảo vệ
+        </button>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form class="row g-3" id="filterForm" method="get">
+                <div class="col-md-4">
+                    <label class="form-label">Đồ án</label>
+                    <select class="form-select" name="mada">
+                        <option value="">-- Tất cả --</option>
+                        {% for da in doans %}
+                        {% if mada_selected == da.mada %}<option value="{{ da.mada }}" selected>{{ da.tenda }}</option>
+                        {% else %} <option value="{{ da.mada }}">{{ da.tenda }}</option>{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-secondary">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách biên bản -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Học viên</th>
+                            <th>Đồ án</th>
+                            <th>Ngày bảo vệ</th>
+                            <th>Địa điểm</th>
+                            <th>Điểm TB</th>
+                            <th>Xếp loại</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bb in bienbans %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ bb.mahv.hoten }}</td>
+                            <td>{{ bb.mada.tenda }}</td>
+                            <td>{{ bb.ngaybaove|date:"d/m/Y" }}</td>
+                            <td>{{ bb.diadiem }}</td>
+                            <td>{{ bb.diemtb|default:"-" }}</td>
+                            <td>{{ bb.xeploai|default:"-" }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                    data-bs-target="#viewBienBanModal" data-id="{{ bb.mabb }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#editBienBanModal" data-id="{{ bb.mabb }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btnDeleteBienBan" data-id="{{ bb.mabb }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Chưa có biên bản nào</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm -->
+<div class="modal fade" id="addBienBanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="addBienBanForm">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Thêm biên bản bảo vệ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Đồ án</label>
+                        <select id="selectDoAn" name="mada" class="form-select" required>
+                            <option value="">-- Chọn đồ án --</option>
+                            {% for da in doans %}
+                            <option value="{{ da.mada }}">{{ da.tenda }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Học viên</label>
+                        <select id="selectHocVien" name="mahv" class="form-select" required>
+                            <option value="">-- Chọn học viên --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày bảo vệ</label>
+                        <input type="date" name="ngaybaove" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Địa điểm</label>
+                        <input type="text" name="diadiem" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Nội dung</label>
+                        <textarea name="noidung" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="ghichu" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết -->
+<div class="modal fade" id="viewBienBanModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Chi tiết bảo vệ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bienbanDetailContent">
+                <p>Đang tải...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Biên Bản -->
+<div class="modal fade" id="editBienBanModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <form id="editBienBanForm">
+        {% csrf_token %}
+        <input type="hidden" name="mabb" id="editMaBB">
+
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title">Chỉnh sửa biên bản & điểm thành viên hội đồng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Ngày bảo vệ</label>
+            <input type="date" name="ngaybaove" id="editNgayBaoVe" class="form-control" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Địa điểm</label>
+            <input type="text" name="diadiem" id="editDiaDiem" class="form-control" required>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label">Nội dung</label>
+            <textarea name="noidung" id="editNoiDung" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label">Ghi chú</label>
+            <textarea name="ghichu" id="editGhiChu" class="form-control" rows="2"></textarea>
+          </div>
+
+          <hr class="my-3">
+
+          <!-- BẢNG ĐIỂM HỘI ĐỒNG -->
+          <div class="col-12">
+            <h5>Điểm thành viên hội đồng</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Thành viên</th>
+                    <th>Vai trò</th>
+                    <th>Điểm</th>
+                  </tr>
+                </thead>
+                <tbody id="editDiemTVBody">
+                  <tr><td colspan="3" class="text-center text-muted">Đang tải...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-warning text-white">Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/manage_baove.js' %}"></script>
+{% endblock %}

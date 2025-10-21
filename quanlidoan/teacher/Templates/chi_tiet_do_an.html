@@ -1,0 +1,48 @@
+{% extends "teacher.html" %}
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Chi tiết đồ án #{{ da.MaDA }}</h4>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" href="{% url 'sua_do_an' da.MaDA %}">✏️ Sửa</a>
+      <a class="btn btn-outline-danger" href="{% url 'xoa_do_an' da.MaDA %}">🗑️ Xóa</a>
+      <a class="btn btn-secondary" href="{% url 'danh_sach_do_an' %}">← Quay lại</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">{{ da.TenDA }}</h5>
+          <dl class="row">
+            <dt class="col-sm-4">Lĩnh vực</dt><dd class="col-sm-8">{{ da.LinhVuc|default:"-" }}</dd>
+            <dt class="col-sm-4">Giáo viên hướng dẫn</dt><dd class="col-sm-8">{{ da.TenGV|default:"Chưa phân công" }}</dd>
+            <dt class="col-sm-4">Trạng thái</dt><dd class="col-sm-8">{{ da.TrangThai }}</dd>
+            <dt class="col-sm-4">Số lượng tối đa</dt><dd class="col-sm-8">{{ da.SoLuongToiDa|default:"-" }}</dd>
+            <dt class="col-sm-4">Ngày gửi</dt><dd class="col-sm-8">{{ da.NgayGui|date:"Y-m-d" }}</dd>
+            <dt class="col-sm-4">Ngày bắt đầu</dt><dd class="col-sm-8">{{ da.NgayBD|date:"Y-m-d"|default:"-" }}</dd>
+            <dt class="col-sm-4">Ngày kết thúc</dt><dd class="col-sm-8">{{ da.NgayKT|date:"Y-m-d"|default:"-" }}</dd>
+            <dt class="col-sm-4">Ngày duyệt</dt><dd class="col-sm-8">{{ da.NgayDuyet|date:"Y-m-d"|default:"-" }}</dd>
+          </dl>
+          <hr>
+          <p class="mb-0"><strong>Mô tả:</strong><br>{{ da.MoTa|default:"(Không có mô tả)"|linebreaksbr }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="mb-2">Tài liệu đính kèm</h6>
+          {% if da.TaiLieuDinhKem %}
+            <a class="btn btn-outline-primary btn-sm" href="{{ da.TaiLieuDinhKem }}" target="_blank">Tải tệp</a>
+          {% else %}
+            <span class="text-muted">Không có</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

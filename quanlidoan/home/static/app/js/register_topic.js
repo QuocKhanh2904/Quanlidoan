@@ -51,6 +51,7 @@ function registerTopic(topicId, action, button) {
                 button.disabled = false;
                 button.classList.remove("btn-primary");
                 button.classList.add("btn-danger");
+                console.log(data.message)
             }
             showToast(data.message, data.status);
         })
