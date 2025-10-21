@@ -1,0 +1,179 @@
+{% extends 'base.html' %} {% load static %}
+
+{% block banner-slider %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Quản lý giảng viên</h3>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#teacherModal"
+      data-mode="create">
+      + Thêm giảng viên
+    </button>
+  </div>
+  <!-- Bộ lọc -->
+  <form id="filterForm" class="row align-items-end g-3 mb-4">
+
+    <!-- Hàng 1: Họ tên, Email, SĐT -->
+    <div class="col-md-4">
+      <label class="form-label mb-1">Họ tên</label>
+      <input type="text" name="hoten" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label mb-1">Email</label>
+      <input type="text" name="email" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label mb-1">Số điện thoại</label>
+      <input type="text" name="sdt" class="form-control form-control-sm">
+    </div>
+
+    <!-- Hàng 2: Đơn vị, Sắp xếp, Nút lọc -->
+    <div class="col-md-4">
+      <label class="form-label mb-1">Đơn vị</label>
+      <input type="text" name="donvi" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label mb-1">Sắp xếp theo</label>
+      <select name="sort" class="form-select form-select-sm">
+        <option value="">-- Không sắp xếp --</option>
+        <option value="doan_asc">Số lượng đồ án ↑</option>
+        <option value="doan_desc">Số lượng đồ án ↓</option>
+        <option value="hoidong_asc">Số lượng hội đồng ↑</option>
+        <option value="hoidong_desc">Số lượng hội đồng ↓</option>
+      </select>
+    </div>
+
+    <div class="col-md-4 text-end">
+      <button type="submit" class="btn btn-primary btn-sm mt-3">🔍 Lọc</button>
+    </div>
+
+  </form>
+  <p class="mt-2"><strong>Tìm thấy {{ giangviens|length }} giảng viên.</strong></p>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Mã GV</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Đơn vị</th>
+          <th>SL đề tài HD</th>
+          <th>SL hội đồng tham gia</th>
+          <th class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for gv in giangviens %}
+        <tr>
+          <td>{{ gv.magv }}</td>
+          <td class="fw-semibold">{{ gv.hoten|default:"-" }}</td>
+          <td class="fw-semibold">{{ gv.email|default:"-" }}</td>
+          <td>{{ gv.sodienthoai|default:"-" }}</td>
+          <td>{{ gv.donvicongtac }}</td>
+          <td>{{ gv.soluongdoan }}</td>
+          <td>{{ gv.soluonghoidong }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-bs-toggle="modal"
+                data-bs-target="#teacherModal" data-mode="edit" data-magv="{{ gv.magv }}"
+                data-hoten="{{ gv.hoten|default_if_none:''|escapejs }}"
+                data-email="{{ gv.email|default_if_none:''|escapejs }}"
+                data-sodienthoai="{{ gv.sodienthoai|default_if_none:''|escapejs }}"
+                data-donvi="{{ gv.donvicongtac|default_if_none:''|escapejs }}">
+                Sửa</button>
+
+              <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteTeacherModal" data-magv="{{ gv.magv }}"
+                data-hoten="{{ gv.hoten|default_if_none:'(không tên)'|escapejs }}">Xóa</button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">Không có dữ liệu</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Thêm/Sửa -->
+<div class="modal fade" id="teacherModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="teacherForm" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Thêm giảng viên</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="magv" id="f_magv">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="f_hoten">Họ tên</label>
+            <input type="text" class="form-control" name="hoten" id="f_hoten" required autocomplete="name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_email">Email</label>
+            <input type="email" class="form-control" name="email" id="f_email" placeholder="email@domain.com"
+              autocomplete="email">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_sodienthoai">Số điện thoại</label>
+            <input type="tel" class="form-control" name="sodienthoai" id="f_sodienthoai" placeholder="09xx..."
+              autocomplete="tel">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_donvi">Đơn vị</label>
+            <!-- Nếu backend nhận 'donvicongtac' thì đổi name="donvi" -> name="donvicongtac" -->
+            <input type="text" class="form-control" name="donvi" id="f_donvi" placeholder="Đơn vị công tác"
+              autocomplete="organization">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Xóa -->
+<div class="modal fade" id="confirmDeleteTeacherModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Xóa giảng viên</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        Bạn chắc chắn muốn xóa giảng viên <strong id="del_teacher_name">...</strong>
+        (Mã: <span id="del_teacher_id"></span>)?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Hủy</button>
+        <button class="btn btn-danger" id="btnConfirmDeleteTeacher" type="button">Xóa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:1080;">
+  <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/manage_giangvien.js' %}"></script>
+{% endblock banner-slider %}

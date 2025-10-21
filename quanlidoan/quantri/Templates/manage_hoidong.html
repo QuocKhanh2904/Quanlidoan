@@ -1,0 +1,169 @@
+{% extends 'base.html' %} {% load static %}
+{% block banner-slider %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Quản lý hội đồng</h3>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#committeeModal"
+      data-mode="create">
+      + Thêm hội đồng
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Mã HD</th>
+          <th>Tên hội đồng</th>
+          <th>Lĩnh vực</th>
+          <th>Ngày thành lập</th>
+          <th>Ngày kết thúc</th>
+          <th class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hd in hoidongs %}
+        <tr>
+          <td>{{ hd.mahd }}</td>
+          <td class="fw-semibold">{{ hd.tenhd|default:"-" }}</td>
+          <td>{{ hd.linhvuc|default:"-" }}</td>
+          <td><small>{{ hd.ngaythanhlap|date:"d/m/Y"|default:"-" }}</small></td>
+          <td><small>{{ hd.ngayketthuc|date:"d/m/Y"|default:"-" }}</small></td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                data-bs-target="#committeeModal" data-mode="edit" data-mahd="{{ hd.mahd }}"
+                data-tenhd="{{ hd.tenhd|default_if_none:''|escapejs }}"
+                data-linhvuc="{{ hd.linhvuc|default_if_none:''|escapejs }}"
+                data-ngaythanhlap="{{ hd.ngaythanhlap|date:'Y-m-d' }}"
+                data-ngayketthuc="{{ hd.ngayketthuc|date:'Y-m-d' }}">Sửa / Thành viên</button>
+
+              <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteCommitteeModal" data-mahd="{{ hd.mahd }}"
+                data-tenhd="{{ hd.tenhd|default_if_none:'(không tên)'|escapejs }}">Xóa</button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">Không có dữ liệu</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Thêm/Sửa + QUẢN LÝ THÀNH VIÊN -->
+<div class="modal fade" id="committeeModal" tabindex="-1" aria-hidden="true" >
+  <div class="modal-dialog modal-xl">
+    <form id="committeeForm" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Thêm hội đồng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="mahd" id="f_mahd">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Tên hội đồng</label>
+            <input type="text" class="form-control" name="tenhd" id="f_tenhd">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Lĩnh vực</label>
+            <input type="text" class="form-control" name="linhvuc" id="f_linhvuc">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Ngày thành lập</label>
+            <input type="date" class="form-control" name="ngaythanhlap" id="f_ngaythanhlap">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Ngày kết thúc</label>
+            <input type="date" class="form-control" name="ngayketthuc" id="f_ngayketthuc">
+          </div>
+        </div>
+
+        <!-- Thành viên hội đồng (hiện khi EDIT) -->
+        <div id="memberSection" class="border-top pt-3" style="display:none;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6 class="mb-0">Thành viên hội đồng</h6>
+          </div>
+
+          <!-- Form thêm thành viên -->
+          <div class="row g-2 align-items-end mb-3">
+            <input type="hidden" name="mahd" id="f_mahd">
+            <div class="col-md-5">
+              <label class="form-label">Mã giảng viên</label>
+              <input type="text" class="form-control" name="magv" id="f_magv" >
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Vai trò</label>
+              <input type="text" class="form-control" name="vaitro" id="f_vaitro" placeholder="Chủ tịch / Thư ký / Ủy viên...">
+            </div>
+            <div class="col-md-3">
+              <button type="button" class="btn btn-success w-100" id="btnAddMember">+ Thêm thành viên</button>
+            </div>
+          </div>
+
+          <!-- Bảng thành viên -->
+          <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle mb-0" id="memberTable">
+              <thead>
+                <tr>
+                  <th style="width:80px;">Mã TV</th>
+                  <th>Họ tên</th>
+                  <th>Vai trò</th>
+                  <th class="text-end" style="width:120px;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                <!-- sẽ đổ bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- /memberSection -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+        <button class="btn btn-primary" type="submit">Lưu hội đồng</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Xóa hội đồng -->
+<div class="modal fade" id="confirmDeleteCommitteeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title">Xóa hội đồng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        Bạn chắc chắn muốn xóa hội đồng <strong id="del_hd_name">...</strong>
+        (Mã: <span id="del_hd_id"></span>)?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Hủy</button>
+        <button class="btn btn-danger" id="btnConfirmDeleteCommittee" type="button">Xóa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:1080;">
+  <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/manage_hoidong.js' %}"></script>
+{% endblock banner-slider %}
