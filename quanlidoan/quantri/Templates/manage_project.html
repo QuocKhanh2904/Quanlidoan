@@ -27,6 +27,12 @@
         {% if trangthai_selected == 2 %}<option value="2" selected>Đã đăng ký</option>{% else %}<option value="2">Đã
           đăng ký
         </option>{% endif %}
+        {% if trangthai_selected == 3 %}<option value="3" selected>Đang thực hiện</option>{% else %}<option value="3">
+          Đang thực hiện
+        </option>{% endif %}
+        {% if trangthai_selected == 4 %}<option value="4" selected>Đã hoàn thành</option>{% else %}<option value="4">Đã
+          hoàn thành
+        </option>{% endif %}
       </select>
     </div>
     <div class="col-md-3">
@@ -72,12 +78,16 @@
             <span class="badge bg-success">Đã duyệt</span>
             {% elif da.trangthai == "2" %}
             <span class="badge bg-warning text-dark">Đã đăng ký</span>
+            {% elif da.trangthai == "3" %}
+            <span class="badge bg-warning text-dark">Đang thực hiện</span>
+            {% elif da.trangthai == "4" %}
+            <span class="badge bg-warning text-dark">Đã hoàn thành</span>
             {% else %}
             <span class="badge bg-secondary">{{ da.trangthai|default:"-" }}</span>
             {% endif %}
           </td>
           <td>{{ da.soluongtoida|default:"-" }}</td>
-          <td><small>{{ da.ngaybd|date:"d/m/Y" }} → {{ da.ngaykt|date:"d/m/Y" }}</small></td>
+          <td><small>{{ da.ngaybatdau|date:"d/m/Y" }} → {{ da.ngayketthuc|date:"d/m/Y" }}</small></td>
           <td>{{ da.tenhd|default:"-" }}</td>
           <td class="text-end">
             <div class="btn-group">
@@ -130,7 +140,9 @@
             <select class="form-select" name="trangthai" id="create_trangthai">
               <option value="0">Chờ duyệt</option>
               <option value="1">Đã duyệt</option>
-              <option value="2">Đã đăng ký</option>
+              <option value="2">Chờ phân công</option>
+              <option value="3">Đang thực hiện</option>
+              <option value="4">Đã hoàn thành</option>
             </select>
           </div>
           <div class="col-md-3">

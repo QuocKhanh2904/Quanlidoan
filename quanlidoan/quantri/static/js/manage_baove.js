@@ -46,8 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "X-CSRFToken": csrftoken },
                 });
                 const data = await res.json();
-                alert(data.message);
                 if (data.status === "success") location.reload();
+                else alert(data.message);
             } catch (err) {
                 console.error(err);
                 alert("Lỗi kết nối!");
@@ -125,8 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify({ mabb: id }),
                 });
                 const data = await res.json();
-                alert(data.message);
                 if (data.status === "success") location.reload();
+                else alert(data.message);
             } catch {
                 alert("Lỗi kết nối!");
             }
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             tbody.appendChild(tr);
                         });
                     } else {
-                        tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted'>Chưa có thành viên hội đồng</td></tr>";
+                        tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted'>Chưa có điểm thành viên hội đồng</td></tr>";
                     }
                 }
             } catch (err) {

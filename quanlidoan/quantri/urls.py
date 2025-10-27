@@ -16,6 +16,10 @@ urlpatterns = [
     path("tiendo/delete/", views.tiendo_delete, name="tiendo_delete"),
     path("tiendo/detail/<int:matd>/", views.tiendo_detail, name="tiendo_detail"),
 
+    path('phancongdoan',views.manage_phancong, name='phancongdoan'),
+    path('phancongdoan/update/',views.phancongdoan_update, name='phancongdoan_update'),
+    path('phancongdoan/reject/',views.phancongdoan_reject, name='phancongdoan_reject'),
+
     path("baove/create/", views.baove_create, name="baove_create"),
     path("baove/update/", views.baove_update, name="baove_update"),
     path("baove/delete/", views.baove_delete, name="baove_delete"),
@@ -44,4 +48,6 @@ urlpatterns = [
     path('hoidong/delete/', views.hoidong_delete, name='hoidong_delete'),
     path('thanhvienhoidong/delete/', views.thanhvienhoidong_delete, name='thanhvienhoidong_delete'),
     path('contact/', views.contact, name='quantri_contact'),
+
+    path('export/doan-theo-hoidong/<int:mahd>/', views.export_doan_theo_hoidong, name='export_doan_theo_hoidong'),
 ]

@@ -239,3 +239,6 @@ textarea.form-control { resize: vertical; }
   height: 100%;
   transition: width 0.3s ease;
 }
+
+.progress-bar { width: calc(var(--p, 0) * 1%); }
+

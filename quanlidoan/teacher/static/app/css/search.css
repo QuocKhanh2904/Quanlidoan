@@ -1,0 +1,27 @@
+/* Kéo dài ô tìm kiếm, canh hàng gọn đẹp */
+.search-form .toolbar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+/* Cho cả cụm input-group giãn hết phần còn lại */
+.search-form .input-group {
+  flex: 1 1 600px;        /* grow + min chiều rộng hợp lý */
+  min-width: 260px;
+}
+
+.search-form .btn,
+.search-form .form-select,
+.search-form .form-control {
+  height: 38px;           /* đồng bộ chiều cao với Bootstrap input */
+}
+
+/* Chips điều kiện (nếu bạn dùng) */
+.search-form .chips {
+  margin-top: .5rem;
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}

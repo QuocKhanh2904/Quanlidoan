@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(r => r.json())
       .then(d => {
         if (d.status === 'success') {
-          alert(d.message)
           setTimeout(() => window.location.reload(), 600);
         } else alert(d.message)
       })
@@ -76,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(response => response.json())
       .then(data => {
         if (data.status === "success") {
-          alert(data.message)
           setTimeout(() => window.location.reload(), 600);
         } else {
           alert(data.message)

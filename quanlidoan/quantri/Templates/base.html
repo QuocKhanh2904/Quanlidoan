@@ -67,6 +67,7 @@
               <li><a class="dropdown-item" href="{% url 'hocvien' %}">Quản lý học viên</a></li>
               <li><a class="dropdown-item" href="{% url 'hoidong' %}">Quản lý hội đồng</a></li>
               <li><a class="dropdown-item" href="{% url 'dangky' %}">Quản lý đăng ký</a></li>
+              <li><a class="dropdown-item" href="{% url 'phancongdoan' %}">Quản lý phân công đề tài</a></li>
               <li><a class="dropdown-item" href="{% url 'tiendo' %}">Quản lý tiến độ</a></li>
               <li><a class="dropdown-item" href="{% url 'baove' %}">Quản lý bảo vệ & kết quả</a></li>
             </ul>
@@ -90,6 +91,7 @@
   {% block manage-tiendo %}{% endblock manage-tiendo %}
   {% block manage-dangky %}{% endblock manage-dangky %}
   {% block manage-baove %}{% endblock manage-baove %}
+  {% block manage-phancong %}{% endblock manage-phancong %}
   {% block contact %}{% endblock contact %}
 
   <!-- notify -->

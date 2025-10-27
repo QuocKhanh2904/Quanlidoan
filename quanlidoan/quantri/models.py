@@ -54,11 +54,6 @@ class Bienban(models.Model):
 
     def bienban_delete_raw(mabb):
         with connection.cursor() as cursor:
-            # Xóa điểm của thành viên hội đồng
-            cursor.execute("DELETE FROM DIEMTHANHVIEN WHERE MaBB = %s", [int(mabb)])
-            # Xóa kết quả bảo vệ
-            cursor.execute("DELETE FROM KETQUABAOVE WHERE MaBB = %s", [int(mabb)])
-            # Xóa biên bản
             cursor.execute("DELETE FROM BIENBAN WHERE MaBB = %s", [int(mabb)])
         return True
    
@@ -415,6 +410,12 @@ class Tiendo(models.Model):
     nguoikiemtra = models.CharField(db_column='NguoiKiemTra', max_length=100, blank=True, null=True)
     mada = models.ForeignKey(Doan, models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
     file = models.FileField(db_column='File', upload_to='baocao/', blank=True, null=True)
+
+    def thongke_tiendo(min_value, max_value):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT dbo.fn_SoLuongDoAn_TheoTienDo(%s, %s)", [min_value, max_value])
+            result = cursor.fetchone()[0]
+        return result
 
     def tiendo_list(mada=None):
         with connection.cursor() as cursor:

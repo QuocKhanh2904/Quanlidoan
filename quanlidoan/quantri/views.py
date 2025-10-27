@@ -3,6 +3,9 @@ from .models import *
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 import json
 
 # Create your views here.
@@ -309,11 +312,14 @@ def thanhvienhoidong_delete(request):
 def manage_tiendo(request):
     mada = request.GET.get('mada')
     doans = Doan.objects.all()
+    so_luong_0_35 = Tiendo.thongke_tiendo(0, 35)
+    so_luong_36_70 = Tiendo.thongke_tiendo(36, 70)
+    so_luong_71_100 = Tiendo.thongke_tiendo(71, 100)
     if mada:
         tiendos = Tiendo.objects.filter(mada__mada=mada).select_related('mada').order_by('-ngaycapnhat')
     else:
         tiendos = []
-    context = {'tiendos': tiendos, 'doans': doans, 'mada_selected': int(mada) if mada else '',}
+    context = {'tiendos': tiendos, 'doans': doans, 'mada_selected': int(mada) if mada else '', 'td0_35':so_luong_0_35, 'td36_70':so_luong_36_70, 'td71_100':so_luong_71_100}
     return render(request, 'manage_tiendo.html', context)
 
 def tiendo_create(request):
@@ -361,6 +367,81 @@ def tiendo_detail(request, matd):
         return JsonResponse({'status': 'success', 'data': data[0]})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
+    
+def manage_phancong(request):
+    # --- Lấy dữ liệu lọc từ form GET ---
+    tenda = normalize(request.GET.get('tenda'))
+    linhvuc = normalize(request.GET.get('linhvuc'))
+
+    # --- Gọi stored procedure sp_DanhSachDoAn_TrangThai2 ---
+    with connection.cursor() as cursor:
+        if tenda or linhvuc:
+            # Nếu có tiêu chí lọc → lọc tại Python (proc này chỉ lấy trạng thái = 2)
+            cursor.execute("EXEC sp_DanhSachDoAn_DangChoPhanCong")
+            columns = [col[0] for col in cursor.description]
+            all_doans = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            doans = [
+                da for da in all_doans
+                if (not tenda or tenda.lower() in (da['tenda'] or '').lower())
+                and (not linhvuc or linhvuc.lower() in (da['linhvuc'] or '').lower())
+            ]
+        else:
+            # Nếu không có lọc → lấy toàn bộ
+            cursor.execute("EXEC sp_DanhSachDoAn_DangChoPhanCong")
+            columns = [col[0] for col in cursor.description]
+            doans = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # --- Lấy danh sách giảng viên ---
+    giangviens = Giangvien.objects.all()
+
+    # --- Truyền context sang template ---
+    context = {
+        'doans': doans,
+        'giangviens': giangviens,
+        'tenda_selected': tenda,
+        'linhvuc_selected': linhvuc,
+    }
+
+    return render(request, 'manage_phancongdoan.html', context)
+
+# ✅ Phân công giảng viên
+def phancongdoan_update(request):
+    if request.method == 'POST':
+        mada = request.POST.get('mada')
+        magv = request.POST.get('magv')
+
+        if not mada or not magv:
+            return JsonResponse({'status': 'error', 'message': 'Thiếu thông tin đồ án hoặc giảng viên.'})
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("EXEC sp_PhanCongGiangVien @MaDA=%s, @MaGV=%s", [mada, magv])
+                columns = [col[0] for col in cursor.description]
+                result = dict(zip(columns, cursor.fetchone()))
+            return JsonResponse(result)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Lỗi: {str(e)}'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Phương thức không hợp lệ.'})
+
+
+# ✅ Từ chối đăng ký
+def phancongdoan_reject(request):
+    if request.method == 'POST':
+        mada = request.POST.get('mada')
+
+        if not mada:
+            return JsonResponse({'status': 'error', 'message': 'Thiếu mã đồ án.'})
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("EXEC sp_TuChoiDangKy @MaDA=%s", [int(mada)])
+                columns = [col[0] for col in cursor.description]
+                result = dict(zip(columns, cursor.fetchone()))
+            return JsonResponse(result)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Lỗi: {str(e)}'})
+
+    return JsonResponse({'status': 'error', 'message': 'Phương thức không hợp lệ.'})
 
 def manage_dangky(request):
     mada = request.GET.get('mada')   
@@ -605,3 +686,25 @@ def baove_update(request):
 
 def contact(request):
     return render(request, 'contact.html')
+
+def render_to_pdf(template_src, context_dict={}):
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    response = HttpResponse(content_type='application/pdf')
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+def export_doan_theo_hoidong(request, mahd):
+    try:
+        hoidong = Hoidong.objects.get(mahd=mahd)
+        doan_list = Doan.objects.filter(mahd=hoidong)
+
+        context = {
+            'hoidong': hoidong,
+            'doan_list': doan_list,
+            'ngay_in': timezone.now().strftime("%d/%m/%Y"),
+        }
+        return render_to_pdf('pdf/DsDoAnBaoVe.html', context)
+
+    except Hoidong.DoesNotExist:
+        return HttpResponse("Hội đồng không tồn tại.", status=404)

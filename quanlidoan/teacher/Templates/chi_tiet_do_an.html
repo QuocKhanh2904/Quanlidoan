@@ -18,7 +18,16 @@
           <dl class="row">
             <dt class="col-sm-4">Lĩnh vực</dt><dd class="col-sm-8">{{ da.LinhVuc|default:"-" }}</dd>
             <dt class="col-sm-4">Giáo viên hướng dẫn</dt><dd class="col-sm-8">{{ da.TenGV|default:"Chưa phân công" }}</dd>
-            <dt class="col-sm-4">Trạng thái</dt><dd class="col-sm-8">{{ da.TrangThai }}</dd>
+            <dt class="col-sm-4">Trạng thái</dt>
+            <dd class="col-sm-8">
+              {% with st=da.TrangThai|stringformat:"s" %}
+                {% if st == "0" %}Chưa duyệt
+                {% elif st == "1" %}Đã duyệt
+                {% elif st == "2" %}Đang thực hiện
+                {% elif st == "3" %}Đã hoàn thành
+                {% else %}-{% endif %}
+              {% endwith %}
+            </dd>
             <dt class="col-sm-4">Số lượng tối đa</dt><dd class="col-sm-8">{{ da.SoLuongToiDa|default:"-" }}</dd>
             <dt class="col-sm-4">Ngày gửi</dt><dd class="col-sm-8">{{ da.NgayGui|date:"Y-m-d" }}</dd>
             <dt class="col-sm-4">Ngày bắt đầu</dt><dd class="col-sm-8">{{ da.NgayBD|date:"Y-m-d"|default:"-" }}</dd>

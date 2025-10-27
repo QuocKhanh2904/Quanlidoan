@@ -4,6 +4,15 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from .models import *
+from collections import defaultdict
+from django.utils.timezone import now
+from pathlib import Path
+from django.db import connection
+from django.conf import settings
+from django.urls import reverse
+from django.contrib import messages
+from urllib.parse import unquote, quote
+from django.utils.http import url_has_allowed_host_and_scheme
 
 # Create your views here.
 @login_required
@@ -23,79 +32,136 @@ def _parse_date(s):
         return None
 
 
-def get_magv(request):
-    """
-    Ưu tiên map theo email → GIANGVIEN.Email
-    Fallback: session hoặc querystring 'magv' (cho dev).
-    """
-    user = getattr(request, "user", None)
+def _get_magv(user):
+    # đổi theo related_name của bạn (giangvien hoặc giangvien_profile)
+    gv = getattr(user, "giangvien", None) or getattr(user, "giangvien_profile", None)
+    return getattr(gv, "magv", None)
 
-    # 1) map theo email đăng nhập
-    if user and user.is_authenticated and user.email:
-        with connection.cursor() as c:
-            # TOP 1 cho SQL Server
-            c.execute("SELECT TOP 1 MaGV FROM GIANGVIEN WHERE LOWER(Email) = LOWER(%s)", [user.email])
-            row = c.fetchone()
-            if row:
-                return row[0]
+def _check_own_project(magv, mada):
+    with connection.cursor() as c:
+        c.execute("SELECT COUNT(*) FROM DOAN WHERE MaDA=%s AND MaGV=%s", [mada, magv])
+        cnt, = c.fetchone()
+    return cnt > 0
 
-    # 2) fallback: session (tự set khi login hoặc tạm thời)
-    magv = request.session.get("magv")
-    if magv:
-        return magv
+def hoi_dong_cua_toi(request):
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
 
-    # 3) fallback: ?magv=... (chỉ nên dùng cho dev/test)
-    magv_qs = request.GET.get("magv")
-    return int(magv_qs) if magv_qs else None
+    q = (request.GET.get("q") or "").strip()
+    show_past = (request.GET.get("past") == "1")
 
+    where = ["TV.MaGV = %s"]
+    params = [magv]
 
-def TienDo_DoAn(request, mada):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT 
-                D.MaDA, D.TenDA, D.LinhVuc, D.MoTa, D.NgayGui, D.TrangThai,
-                G.HoTen AS TenGV,
-                ISNULL(AVG(T.TienDoPhanTram), 0) AS TienDoTB
-            FROM DOAN D
-            LEFT JOIN GIANGVIEN G ON G.MaGV = D.MaGV
-            LEFT JOIN TIENDO T ON T.MaDA = D.MaDA
-            WHERE D.MaDA = %s
-            GROUP BY D.MaDA, D.TenDA, D.LinhVuc, D.MoTa, D.NgayGui, D.TrangThai, G.HoTen
-        """, [mada])
-        da = dictfetchall(cursor)
-    if not da:
-        return redirect("danh_sach_do_an")
-    da = da[0]
+    if not show_past:
+        where.append("(BB.NgayBaoVe IS NULL OR BB.NgayBaoVe >= CAST(GETDATE() AS DATE))")
 
-    # Lấy lịch sử tiến độ
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT MaTD, MoTaCongViec, TienDoPhanTram, NgayCapNhat, NguoiKiemTra
-            FROM TIENDO
-            WHERE MaDA = %s
-            ORDER BY NgayCapNhat DESC, MaTD DESC
-        """, [mada])
-        tiendos = dictfetchall(cursor)
+    if q:
+        like = f"%{q}%"
+        where.append("(HD.TenHD LIKE %s OR D.TenDA LIKE %s OR HV.HoTen LIKE %s)")
+        params += [like, like, like]
 
-    ctx = {"da": da, "tiendos": tiendos}
-    return render(request, "tiendo_do_an.html", ctx)
+    where_sql = " AND ".join(where)
+
+    with connection.cursor() as c:
+        c.execute(f"""
+            SELECT
+              HD.MaHD       AS mahd,
+              HD.TenHD      AS tenhd,
+              BB.NgayBaoVe  AS ngaybaove,
+              BB.DiaDiem    AS diadiem,
+              D.MaDA        AS mada,
+              D.TenDA       AS tenda,
+              D.LinhVuc     AS linhvuc,
+              D.TrangThai   AS trangthai,
+              HV.MaHV       AS mahv,
+              HV.HoTen      AS tenhv
+            FROM THANHVIENHOIDONG TV
+            JOIN HOIDONG HD ON HD.MaHD = TV.MaHD
+            JOIN DOAN D     ON D.MaHD  = HD.MaHD
+            OUTER APPLY (
+                SELECT TOP 1 NgayBaoVe, DiaDiem
+                FROM BIENBAN BB0
+                WHERE BB0.MaDA = D.MaDA
+                ORDER BY BB0.NgayBaoVe DESC, BB0.MaBB DESC
+            ) AS BB
+            LEFT JOIN DANGKY DK  ON DK.MaDA = D.MaDA AND DK.TrangThai = 1
+            LEFT JOIN HOCVIEN HV ON HV.MaHV = DK.MaHV
+            WHERE {where_sql}
+            ORDER BY BB.NgayBaoVe, HD.MaHD, D.MaDA
+        """, params)
+        rows = dictfetchall(c)
+
+    groups = defaultdict(lambda: {"de_tai": []})
+    for r in rows:
+        g = groups[r["mahd"]]
+        if "tenhd" not in g:
+            g.update({
+                "mahd": r["mahd"],
+                "tenhd": r["tenhd"],
+                "ngaybaove": r["ngaybaove"],
+                "diadiem": r["diadiem"],
+            })
+        if r["mada"]:
+            g["de_tai"].append({
+                "mada": r["mada"],
+                "tenda": r["tenda"],
+                "linhvuc": r["linhvuc"],
+                "trangthai": r["trangthai"],
+                "mahv": r["mahv"],
+                "tenhv": r["tenhv"],
+                "ngaybaove": r["ngaybaove"],
+                "diadiem": r["diadiem"],
+            })
+
+    return render(request, "teacher/hoi_dong_cua_toi.html", {
+        "q": q,
+        "show_past": show_past,
+        "hoidongs": list(groups.values()),
+        "tong_hd": len(groups),
+        "tong_dt": len(rows),
+    })
+
 
 def DanhSachDoAn(request):
-    magv = request.user.giangvien.magv
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
+    q = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "").strip()
+
+    # --- 1) Danh sách có áp dụng lọc q/status ---
+    where = ["D.MaGV = %s"]
+    params = [magv]
+    if q:
+        like = f"%{q}%"
+        where.append("""
+            (
+              D.TenDA LIKE %s OR D.LinhVuc LIKE %s OR D.MoTa LIKE %s
+              OR CAST(D.MaDA AS NVARCHAR(50)) LIKE %s
+            )
+        """)
+        params += [like, like, like, like]
+    if status in {"0", "1", "2", "3"}:
+        where.append("D.TrangThai = %s")
+        params.append(int(status))
+    where_sql = " AND ".join(where)
+
+    with connection.cursor() as cur:
+        cur.execute(f"""
             SELECT 
-                D.MaDA      AS mada,
-                D.TenDA     AS tenda,
-                D.LinhVuc   AS linhvuc,
-                D.TrangThai AS trangthai,
-                D.MoTa      AS mota,
-                D.NgayGui   AS ngaygui,
-                D.MaGV      AS magv,
-                G.HoTen     AS giangvien,
+                D.MaDA        AS mada,
+                D.TenDA       AS tenda,
+                D.LinhVuc     AS linhvuc,
+                D.TrangThai   AS trangthai,
+                D.MoTa        AS mota,
+                D.NgayGui     AS ngaygui,
+                D.MaGV        AS magv,
+                G.HoTen       AS giangvien,
                 ISNULL(Tlatest.TienDoPhanTram, 0) AS tiendo,
-                Tlatest.NgayCapNhat AS ngaytiendo
+                Tlatest.NgayCapNhat               AS ngaytiendo
             FROM DOAN D
             LEFT JOIN GIANGVIEN G ON D.MaGV = G.MaGV
             OUTER APPLY (
@@ -104,26 +170,34 @@ def DanhSachDoAn(request):
                 WHERE T.MaDA = D.MaDA
                 ORDER BY T.NgayCapNhat DESC, T.MaTD DESC
             ) AS Tlatest
-            WHERE D.MaGV = %s
-            ORDER BY D.NgayGui DESC, D.MaDA DESC;
-        """, [magv])
-        doans = dictfetchall(cursor)
+            WHERE {where_sql}
+            ORDER BY D.NgayGui DESC, D.MaDA DESC
+        """, params)
+        doans = dictfetchall(cur)
 
-    # 🧩 Thống kê
-    tong_so_do_an = len(doans)
-    so_dang_thuc_hien = sum(1 for d in doans if str(d["trangthai"]) in {"2", "3"})
-    so_hoan_thanh = sum(1 for d in doans if str(d["trangthai"]) == "4")
-    so_bao_ve = sum(1 for d in doans if str(d["trangthai"]) == "5")
+    # --- 2) Tổng KHÔNG đổi (chỉ theo giáo viên) ---
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT
+                COUNT(*)                                                   AS tong_so_do_an,
+                ISNULL(SUM(CASE WHEN TrangThai=0 THEN 1 ELSE 0 END), 0)    AS tong_chua_duyet,
+                ISNULL(SUM(CASE WHEN TrangThai=2 THEN 1 ELSE 0 END), 0)    AS tong_dang_thuc_hien,
+                ISNULL(SUM(CASE WHEN TrangThai=3 THEN 1 ELSE 0 END), 0)    AS tong_da_hoan_thanh
+            FROM DOAN
+            WHERE MaGV = %s
+        """, [magv])
+        tong, chua_duyet, dang_th, da_ht = c.fetchone()
 
     ctx = {
         "doans": doans,
-        "tong_so_do_an": tong_so_do_an,
-        "so_dang_thuc_hien": so_dang_thuc_hien,
-        "so_hoan_thanh": so_hoan_thanh,
-        "so_bao_ve": so_bao_ve,
+        "tong_so_do_an": tong,
+        "tong_chua_duyet": chua_duyet,
+        "tong_dang_thuc_hien": dang_th,
+        "tong_da_hoan_thanh": da_ht,
+        "count_filtered": len(doans),
+        "q": q, "status": status,
     }
     return render(request, "danh_sach_do_an.html", ctx)
-
 
 
 def ThemDoAn(request):
@@ -180,33 +254,49 @@ def ChiTietDoAn(request, mada):
     return render(request, "chi_tiet_do_an.html", {"da": da})
 
 def SuaDoAn(request, mada):
-    if request.method == "POST":
-        tenda    = request.POST.get("tenda", "").strip()
-        linhvuc  = request.POST.get("linhvuc", "").strip() or None
-        trangthai = request.POST.get("trangthai") or None
-        soluong  = request.POST.get("soluong") or None
-        mota     = request.POST.get("mota", "").strip() or None
-        ngaybd   = _parse_date(request.POST.get("ngaybd"))
-        ngaykt   = _parse_date(request.POST.get("ngaykt"))
-        ngaygui  = _parse_date(request.POST.get("ngaygui"))   # CHO SỬA cả NgayGui
-        magv     = request.POST.get("magv") or None
+    user = request.user
 
+    # Lấy MaGV từ user (nếu là giáo viên)
+    magv_user = getattr(getattr(user, "giangvien_profile", None), "magv", None)
+
+    if request.method == "POST":
+        tenda = request.POST.get("tenda", "").strip()
+        linhvuc = request.POST.get("linhvuc", "").strip() or None
+        soluong = request.POST.get("soluong") or None
+        mota = request.POST.get("mota", "").strip() or None
+        ngaybd = _parse_date(request.POST.get("ngaybd"))
+        ngaykt = _parse_date(request.POST.get("ngaykt"))
+        magv = request.POST.get("magv") or None
+        
         if not tenda:
-            # trả lại form với thông báo lỗi + dữ liệu đã nhập
-            form = request.POST.copy()
-            form["mada"] = mada
             return render(request, "sua_do_an.html", {
                 "error": "Tên đồ án là bắt buộc.",
-                "doan": form
+                "doan": request.POST
             })
 
         with connection.cursor() as cursor:
-            cursor.execute("""
-                UPDATE DOAN
-                SET TenDA=%s, LinhVuc=%s, TrangThai=%s, SoLuongToiDa=%s,
-                    NgayGui=%s, MoTa=%s, NgayBD=%s, NgayKT=%s, MaGV=%s
-                WHERE MaDA=%s
-            """, [tenda, linhvuc, trangthai, soluong, ngaygui, mota, ngaybd, ngaykt, magv, mada])
+            # Nếu là giáo viên → chỉ được sửa đồ án của mình
+            if magv_user:
+                cursor.execute("""
+                    UPDATE DOAN
+                    SET TenDA=%s, LinhVuc=%s, SoLuongToiDa=%s, MoTa=%s, NgayBD=%s, NgayKT=%s
+                    WHERE MaDA=%s AND MaGV=%s
+                """, [tenda, linhvuc, soluong, mota, ngaybd, ngaykt, mada, magv_user])
+            else:
+                # Admin: nhận magv nếu có, nếu rỗng thì GIỮ NGUYÊN
+                trangthai = request.POST.get("trangthai")
+                ngaygui   = _parse_date(request.POST.get("ngaygui"))
+                magv_raw  = request.POST.get("magv")  # không dùng "or None"
+                cursor.execute("""
+                    UPDATE DOAN
+                    SET TenDA=%s, LinhVuc=%s,
+                        TrangThai=COALESCE(%s, TrangThai),
+                        SoLuongToiDa=%s,
+                        NgayGui=COALESCE(%s, NgayGui),
+                        MoTa=%s, NgayBD=%s, NgayKT=%s,
+                        MaGV=COALESCE(NULLIF(%s, ''), MaGV)
+                    WHERE MaDA=%s
+                """, [tenda, linhvuc, trangthai, soluong, ngaygui, mota, ngaybd, ngaykt, magv_raw, mada])
 
         return redirect("danh_sach_do_an")
 
@@ -235,7 +325,8 @@ def SuaDoAn(request, mada):
         "ngaykt": row[8],
         "magv": row[9],
     }
-    return render(request, "sua_do_an.html", {"doan": doan})
+
+    return render(request, "sua_do_an.html", {"doan": doan, "is_teacher": bool(magv_user)})
 
 def XoaDoAn(request, mada):
     # Lấy thông tin cơ bản + tên giảng viên
@@ -307,3 +398,299 @@ def BaoCaoDangKy(request):
 
     ctx = {"rows": rows, "q": q, "tong": len(rows)}
     return render(request, "baocao_dangky.html", ctx)
+
+
+# ---- Helpers quyền hạn ----
+def _is_supervisor(magv, mada):
+    """GV là người hướng dẫn đồ án (HUONGDANDOAN)."""
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT COUNT(*) 
+            FROM HUONGDANDOAN 
+            WHERE MaGV=%s AND MaDA=%s AND (VaiTro=N'Hướng dẫn' OR VaiTro IS NULL)
+        """, [magv, mada])
+        cnt, = c.fetchone()
+    return cnt > 0
+
+def _can_update_progress(magv, mada):
+    """GV được phép cập nhật tiến độ nếu là chủ nhiệm (DOAN.MaGV) hoặc người hướng dẫn."""
+    return _check_own_project(magv, mada) or _is_supervisor(magv, mada)
+
+# ---- 2.1 Danh sách đồ án GV đang hướng dẫn ----
+def DanhSachHuongDan(request):
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
+
+    q = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "").strip()
+
+    where = ["HDD.MaGV = %s", "(HDD.VaiTro=N'Hướng dẫn' OR HDD.VaiTro IS NULL)"]
+    params = [magv]
+
+    if q:
+        like = f"%{q}%"
+        where.append("""
+            (
+              D.TenDA LIKE %s OR D.LinhVuc LIKE %s OR D.MoTa LIKE %s
+              OR CAST(D.MaDA AS NVARCHAR(50)) LIKE %s
+              OR HV.HoTen LIKE %s
+            )
+        """)
+        params += [like, like, like, like, like]
+
+    if status in {"0","1","2","3"}:
+        where.append("D.TrangThai = %s")
+        params.append(int(status))
+
+    where_sql = " AND ".join(where)
+
+    with connection.cursor() as c:
+        c.execute(f"""
+            SELECT 
+                D.MaDA AS mada, D.TenDA AS tenda, D.LinhVuc AS linhvuc,
+                D.TrangThai AS trangthai, D.MoTa AS mota, D.NgayGui AS ngaygui,
+                -- sinh viên (nếu có đăng ký được duyệt)
+                HV.HoTen AS tenhv,
+                -- tiến độ mới nhất
+                ISNULL(Tlatest.TienDoPhanTram,0) AS tiendo,
+                Tlatest.NgayCapNhat AS ngaytiendo
+            FROM HUONGDANDOAN HDD
+            JOIN DOAN D        ON D.MaDA = HDD.MaDA
+            LEFT JOIN (
+                SELECT DK.MaDA, HV.HoTen
+                FROM DANGKY DK 
+                JOIN HOCVIEN HV ON HV.MaHV = DK.MaHV
+                WHERE DK.TrangThai = 1
+            ) AS HV ON HV.MaDA = D.MaDA
+            OUTER APPLY (
+                SELECT TOP 1 T.TienDoPhanTram, T.NgayCapNhat
+                FROM TIENDO T
+                WHERE T.MaDA = D.MaDA
+                ORDER BY T.NgayCapNhat DESC, T.MaTD DESC
+            ) AS Tlatest
+            WHERE {where_sql}
+            ORDER BY D.NgayGui DESC, D.MaDA DESC
+        """, params)
+        projects = dictfetchall(c)
+
+    return render(request, "teacher/huongdan_list.html", {
+        "projects": projects, "q": q, "status": status,
+        "count_filtered": len(projects),
+    })
+
+# ---- 2.2 Xem & giao tiến độ cho đồ án hướng dẫn ----
+def HD_XemTienDo(request, mada):
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
+    if not _can_update_progress(magv, mada):
+        return HttpResponseForbidden("Bạn không có quyền với đồ án này.")
+
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT D.MaDA AS mada, D.TenDA AS tenda, D.LinhVuc AS linhvuc,
+                   T.TienDoPhanTram AS tiendo_moi, T.NgayCapNhat AS ngay_moi
+            FROM DOAN D
+            OUTER APPLY (
+                SELECT TOP 1 TienDoPhanTram, NgayCapNhat
+                FROM TIENDO
+                WHERE MaDA=D.MaDA AND NguoiKiemTra IS NOT NULL     -- ★
+                ORDER BY NgayCapNhat DESC, MaTD DESC
+            ) AS T
+            WHERE D.MaDA=%s
+        """, [mada])
+        rows = dictfetchall(c)
+    if not rows:
+        return redirect("ds_huong_dan")
+
+    doan = rows[0]
+    p = doan.get("tiendo_moi") or 0
+    try:
+        doan["tiendo_pct"] = int(round(float(p)))
+    except Exception:
+        doan["tiendo_pct"] = 0
+
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT MaTD AS matd, MoTaCongViec AS motacongviec,
+                   [File] AS baocao, TienDoPhanTram AS tiendophantram,
+                   NgayCapNhat AS ngaycapnhat, NguoiKiemTra AS nguoicham
+            FROM TIENDO
+            WHERE MaDA=%s
+            ORDER BY NgayCapNhat DESC, MaTD DESC
+        """, [mada])
+        tiendos = dictfetchall(c)
+
+    back_url = reverse("ds_huong_dan")
+    return render(request, "teacher/hd_tiendo.html", {
+        "doan": doan, "tiendos": tiendos, "back_url": back_url,
+    })
+
+# ---- 2.4 Đánh giá / xác nhận kiểm tra một mốc ----
+def HD_DanhGiaTienDo(request, matd):
+    if request.method != "POST":
+        with connection.cursor() as c:
+            c.execute("SELECT MaDA FROM TIENDO WHERE MaTD=%s", [matd])
+            row = c.fetchone()
+        return redirect("hd_xem_tiendo", mada=row[0] if row else 0)
+
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã GV.")
+
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT MaDA, [File], TienDoPhanTram, NgayCapNhat, NguoiKiemTra
+            FROM TIENDO WHERE MaTD=%s
+        """, [matd])
+        row = c.fetchone()
+    if not row:
+        return redirect("ds_huong_dan")
+
+    mada, baocao, cur_percent, this_time, nguoicham = row
+
+    if not _can_update_progress(magv, mada):
+        return HttpResponseForbidden("Bạn không có quyền với đồ án này.")
+    if not baocao:
+        messages.error(request, "Chưa có báo cáo để chấm.")
+        return redirect("hd_xem_tiendo", mada=mada)
+    if nguoicham:  # đã chấm rồi
+        messages.info(request, "Mốc này đã được duyệt trước đó.")
+        return redirect("hd_xem_tiendo", mada=mada)
+
+    try:
+        new_percent = int(request.POST.get("phantram"))
+    except (TypeError, ValueError):
+        messages.error(request, "Vui lòng nhập phần trăm hợp lệ.")
+        return redirect("hd_xem_tiendo", mada=mada)
+    new_percent = max(0, min(100, new_percent))
+
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT TOP 1 TienDoPhanTram
+            FROM TIENDO
+            WHERE MaDA=%s AND NguoiKiemTra IS NOT NULL
+              AND (NgayCapNhat < %s OR (NgayCapNhat=%s AND MaTD < %s))
+            ORDER BY NgayCapNhat DESC, MaTD DESC
+        """, [mada, this_time, this_time, matd])
+        prev = c.fetchone()
+    prev_percent = prev[0] if prev else 0
+    if new_percent < prev_percent:
+        messages.error(request, f"% mới ({new_percent}%) không được thấp hơn mốc đã duyệt trước đó ({prev_percent}%).")
+        return redirect("hd_xem_tiendo", mada=mada)
+    # Lấy mốc đã duyệt lớn nhất TRƯỚC mốc đang chấm
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT ISNULL(MAX(TienDoPhanTram),0)
+            FROM TIENDO
+            WHERE MaDA=%s AND NguoiKiemTra IS NOT NULL
+            AND (NgayCapNhat < %s OR (NgayCapNhat=%s AND MaTD < %s))
+        """, [mada, this_time, this_time, matd])
+        max_before = row[0] if row and row[0] is not None else 0
+
+    if new_percent < max_before:
+        messages.error(request, f"% mới ({new_percent}%) không được nhỏ hơn mốc đã duyệt trước đó ({max_before}%).")
+        return redirect("hd_xem_tiendo", mada=mada)
+
+    # Lấy mốc đã duyệt nhỏ nhất SAU mốc đang chấm
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT MIN(TienDoPhanTram)
+            FROM TIENDO
+            WHERE MaDA=%s AND NguoiKiemTra IS NOT NULL
+            AND (NgayCapNhat > %s OR (NgayCapNhat=%s AND MaTD > %s))
+        """, [mada, this_time, this_time, matd])
+        row = c.fetchone()
+        min_after = row[0] if row and row[0] is not None else None
+
+    if min_after is not None and new_percent > min_after:
+        messages.error(request, f"% mới ({new_percent}%) không được lớn hơn mốc đã duyệt sau đó ({min_after}%).")
+        return redirect("hd_xem_tiendo", mada=mada)
+
+
+    with connection.cursor() as c:
+        c.execute("""
+            UPDATE TIENDO
+            SET TienDoPhanTram=%s, NguoiKiemTra=%s
+            WHERE MaTD=%s
+        """, [new_percent, str(magv), matd])
+
+        c.execute("""
+            SELECT TOP 1 TienDoPhanTram
+            FROM TIENDO
+            WHERE MaDA=%s AND NguoiKiemTra IS NOT NULL
+            ORDER BY NgayCapNhat DESC, MaTD DESC
+        """, [mada])
+        row = c.fetchone()
+        latest = row[0] if row else 0
+        if latest == 100:
+            c.execute("UPDATE DOAN SET TrangThai=3 WHERE MaDA=%s", [mada])
+        else:
+            c.execute("UPDATE DOAN SET TrangThai=2 WHERE MaDA=%s AND TrangThai=3", [mada])
+
+    messages.success(request, "Đã duyệt báo cáo & cập nhật %.")  # ký tự % trong message là bình thường
+    return redirect("hd_xem_tiendo", mada=mada)
+    
+
+def HD_HuyDuyetTienDo(request, matd):
+    """Hủy duyệt một mốc: đặt NguoiKiemTra=NULL, tính lại % & trạng thái đồ án."""
+    if request.method != "POST":
+        with connection.cursor() as c:
+            c.execute("SELECT MaDA FROM TIENDO WHERE MaTD=%s", [matd])
+            row = c.fetchone()
+        return redirect("hd_xem_tiendo", mada=row[0] if row else 0)
+
+    # Lấy thông tin mốc
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT MaDA, NguoiKiemTra
+            FROM TIENDO
+            WHERE MaTD=%s
+        """, [matd])
+        row = c.fetchone()
+
+    if not row:
+        messages.error(request, "Không tìm thấy mốc tiến độ.")
+        return redirect("ds_huong_dan")
+
+    mada, nguoicham = row
+
+    magv = _get_magv(request.user)
+    if not magv:
+        return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
+    if not _can_update_progress(magv, mada):
+        return HttpResponseForbidden("Bạn không có quyền với đồ án này.")
+
+    if not nguoicham:
+        messages.info(request, "Mốc này hiện chưa được duyệt.")
+        return redirect("hd_xem_tiendo", mada=mada)
+
+    # Hủy duyệt
+    with connection.cursor() as c:
+        c.execute("""
+            UPDATE TIENDO
+            SET NguoiKiemTra = NULL
+            WHERE MaTD=%s
+        """, [matd])
+
+        # Tính lại % đã duyệt mới nhất & cập nhật trạng thái đồ án
+        c.execute("""
+            SELECT TOP 1 TienDoPhanTram
+            FROM TIENDO
+            WHERE MaDA=%s AND NguoiKiemTra IS NOT NULL
+            ORDER BY NgayCapNhat DESC, MaTD DESC
+        """, [mada])
+        row = c.fetchone()
+        latest = row[0] if row else 0
+
+        if latest == 100:
+            c.execute("UPDATE DOAN SET TrangThai=3 WHERE MaDA=%s", [mada])
+        else:
+            # nếu trước đó là 3 nhưng giờ không còn đủ 100% thì kéo về 2
+            c.execute("UPDATE DOAN SET TrangThai=2 WHERE MaDA=%s AND TrangThai=3", [mada])
+
+    messages.success(request, "Đã hủy duyệt mốc tiến độ. Bạn có thể chấm lại.")
+    url = reverse("hd_xem_tiendo", kwargs={"mada": mada})
+    back = request.GET.get("back")
+    return redirect(f"{url}?back={quote(back)}" if back else url)

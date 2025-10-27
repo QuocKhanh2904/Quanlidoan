@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.status === 'success') {
           const modal = bootstrap.Modal.getInstance(modalEl);
           modal.hide();
-          alert(data.message);
           window.location.reload();
         } else {
           alert(data.message);
@@ -58,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.status === 'success') {
           const modalInstance = bootstrap.Modal.getInstance(editModalEl);
           modalInstance?.hide();
-          alert(data.message || 'Cập nhật thành công!');
           window.location.reload();
         } else {
           alert(data.message || 'Cập nhật thất bại.');
@@ -91,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.status === 'success') {
           const modalInstance = bootstrap.Modal.getInstance(deleteModalEl);
           modalInstance?.hide();
-          alert(data.message || 'Xóa thành công!');
           window.location.reload();
         } else {
           alert(data.message || 'Xóa thất bại.');

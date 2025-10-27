@@ -16,7 +16,7 @@
   <form method="post" class="card p-3 shadow-sm">
     {% csrf_token %}
     <div class="row g-3">
-      <div class="col-md-8">
+      <div class="col-md-12">
         <label class="form-label fw-bold"
           >Tên đồ án <span class="text-danger">*</span></label
         >
@@ -30,7 +30,7 @@
         />
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-12">
         <label class="form-label fw-bold">Lĩnh vực</label>
         <input
           type="text"
@@ -53,7 +53,7 @@
         />
       </div> 
 
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label fw-bold">Ngày bắt đầu</label>
         <input
           type="date"
@@ -63,7 +63,7 @@
         />
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label fw-bold">Ngày kết thúc</label>
         <input
           type="date"

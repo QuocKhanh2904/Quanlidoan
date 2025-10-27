@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block manage-phancong %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Phân công giảng viên</h3>
+  </div>
+
+  <!-- Bộ lọc -->
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-4">
+      <label class="form-label">Tên đồ án</label>
+      <input type="text" name="tenda" class="form-control" value="{{ tenda_selected|default_if_none:'' }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Lĩnh vực</label>
+      <input type="text" name="linhvuc" class="form-control" value="{{ linhvuc_selected|default_if_none:'' }}">
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <button class="btn btn-primary w-100">Lọc</button>
+    </div>
+  </form>
+
+  <!-- Bảng danh sách -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Mã</th>
+          <th>Tên đồ án</th>
+          <th>Lĩnh vực</th>
+          <th>Hội đồng</th>
+          <th>Số lượng HV</th>
+          <th>Giảng viên hướng dẫn</th>
+          <th class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for da in doans %}
+        <tr>
+          <td>{{ da.mada }}</td>
+          <td class="fw-semibold">{{ da.tenda }}</td>
+          <td>{{ da.linhvuc|default:"-" }}</td>
+          <td>{{ da.tenhd|default:"-" }}</td>
+          <td>{{ da.soluonghientai|default:"0" }}</td>
+          <td>{{ da.hoten|default:"<span class='text-muted'>Chưa phân công</span>"|safe }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <!-- Phân công giảng viên -->
+              <button class="btn btn-sm btn-outline-primary btn-assign" data-bs-toggle="modal"
+                data-bs-target="#modalAssignGV" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}"
+                data-magv="{{ da.magv|default_if_none:'' }}">
+                Phân công
+              </button>
+              <!-- Từ chối -->
+              <button class="btn btn-sm btn-outline-danger btn-reject" data-bs-toggle="modal"
+                data-bs-target="#modalReject" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}">
+                Từ chối
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">Không có đồ án nào đang chờ phân công giảng viên</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal phân công giảng viên -->
+<div class="modal fade" id="modalAssignGV" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="assignGVForm" method="post" class="modal-content">
+      {% csrf_token %}
+      <!-- input ẩn để gửi -->
+      <input type="hidden" name="mada" id="assign_mada_hidden">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Phân công giảng viên hướng dẫn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Mã đồ án:</strong> <span id="assign_mada_text"></span></p>
+        <p><strong>Đồ án:</strong> <span id="assign_tenda"></span></p>
+
+        <div class="mb-3">
+          <label class="form-label">Giảng viên hướng dẫn</label>
+          <select class="form-select" name="magv" id="assign_magv" required>
+            <option value="">-- Chọn giảng viên --</option>
+            {% for gv in giangviens %}
+            <option value="{{ gv.magv }}">{{ gv.hoten }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- Modal từ chối đăng ký -->
+<div class="modal fade" id="modalReject" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="rejectForm" method="post" class="modal-content">
+      {% csrf_token %}
+      <input type="hidden" name="mada" id="reject_mada">
+      <div class="modal-header">
+        <h5 class="modal-title">Từ chối đăng ký</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Bạn có chắc chắn muốn <strong class="text-danger">từ chối</strong> đăng ký của đồ án
+        <strong id="reject_tenda">...</strong> (Mã: <span id="reject_id">?</span>)?
+        <div class="form-text mt-2">Thao tác này sẽ xóa tất cả học viên đã đăng ký đồ án này.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-danger" type="submit">Xác nhận</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast thông báo -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:1080;">
+  <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/manage_phancongdoan.js' %}"></script>
+{% endblock manage-phancong %}

@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(d => {
         if (d.status === 'success') {
           setTimeout(() => window.location.reload(), 600);
-          alert(d.message || 'Thành công');
         } else alert(d.message || 'Thất bại');
       })
       .catch(() => alert('Lỗi kết nối'));
@@ -68,10 +67,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json();               // chuyển sang JSON
       })
       .then(data => {
-        alert(data.message || 'Đã xóa');
         if (data.status === 'success') {
           setTimeout(() => window.location.reload(), 600);
-        }
+        } else alert(data.message || 'Đã xóa');
       })
       .catch(error => {
         console.error('Lỗi:', error);
