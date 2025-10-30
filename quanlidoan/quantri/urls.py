@@ -17,8 +17,8 @@ urlpatterns = [
     path("tiendo/detail/<int:matd>/", views.tiendo_detail, name="tiendo_detail"),
 
     path('phancongdoan',views.manage_phancong, name='phancongdoan'),
-    path('phancongdoan/update/',views.phancongdoan_update, name='phancongdoan_update'),
-    path('phancongdoan/reject/',views.phancongdoan_reject, name='phancongdoan_reject'),
+    path("phancongdoan/update/", views.phancongdoan_update, name="phancongdoan_update"),
+    path("hoidong/giangvien/", views.hoidong_giangvien, name="hoidong_giangvien"),
 
     path("baove/create/", views.baove_create, name="baove_create"),
     path("baove/update/", views.baove_update, name="baove_update"),
@@ -50,4 +50,7 @@ urlpatterns = [
     path('contact/', views.contact, name='quantri_contact'),
 
     path('export/doan-theo-hoidong/<int:mahd>/', views.export_doan_theo_hoidong, name='export_doan_theo_hoidong'),
+    path('export-tiendo/<int:mada>/', views.export_tiendo_doan, name='export_tiendo_doan'),
+    path("export-ketqua/<int:mada>/", views.export_ketqua_doan, name="export_ketqua_doan"),
+    path("export-bienban/<int:mabb>/", views.export_bienban_baove, name="export_bienban_baove"),
 ]

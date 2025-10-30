@@ -6,6 +6,8 @@
     <h2 class="card-title text-primary mb-4" style="text-align: center;">
         📋 Thông tin báo cáo tiến độ
     </h2>
+    {% if dangky %}
+    {% if dangky.trangthai == '1' %}
     <div class="card shadow-lg border-0">
         <div class="card-body">
             <!-- Thông tin đồ án -->
@@ -18,7 +20,7 @@
                     <div id="uploadProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-info"
                         role="progressbar" style="width: {{ doan.tiendo }}%" aria-valuenow="{{doan.tiendo}}"
                         aria-valuemin="0" aria-valuemax="100">
-                        {{doan.tiendo}}%
+                        {{doan.tiendo|default:"0"}}%
                     </div>
                 </div>
             </div>
@@ -75,7 +77,7 @@
                 {% for report in tiendos %}
                 <tr>
                     <td>{{ report.motacongviec }}</td>
-                    <td>{{ report.tiendophantram }}%</td>
+                    <td>{{ report.tiendophantram|default:"chưa cập nhật" }} %</td>
                     <td>{{ report.ngaycapnhat|date:"d/m/Y" }}</td>
                     <td>{{ report.nguoikiemtra }}</td>
                     <td>
@@ -91,6 +93,16 @@
         </table>
     </div>
 </div>
+{% elif dangky.trangthai == '0' %}
+<div class="alert alert-warning text-center" role="alert">
+    ⚠️ Đăng ký của bạn đang chờ duyệt. Vui lòng chờ giảng viên phê duyệt để có thể báo cáo tiến độ.
+</div>
+{% endif %}
+{% else %}
+<div class="alert alert-danger text-center" role="alert">
+    ⚠️ Bạn chưa đăng ký đồ án nào. Vui lòng đăng ký đồ án để có thể báo cáo tiến độ.
+</div>
+{% endif %}
 
 <script src="{% static 'app/js/report_progress.js' %}"></script>
 {% endblock %}

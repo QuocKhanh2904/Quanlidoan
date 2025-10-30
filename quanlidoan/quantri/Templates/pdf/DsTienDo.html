@@ -12,19 +12,20 @@
 
         body {
             font-family: "NotoSans", sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         h1 {
             text-align: center;
-            font-weight: bold;
+            text-transform: uppercase;
+            color: #003366;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         th,
@@ -32,49 +33,54 @@
             border: 1px solid #000;
             padding: 6px;
             text-align: center;
+            vertical-align: middle;
         }
 
         th {
             background-color: #e0e0e0;
         }
+
+        p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 
 <body>
-    <h1>DANH SÁCH BẢO VỆ ĐỒ ÁN</h1>
+    <h1>BÁO CÁO TIẾN ĐỘ ĐỒ ÁN</h1>
 
-    <p><b>Hội đồng:</b> {{ hoidong.tenhd }}</p>
-    <p><b>Lĩnh vực:</b> {{ hoidong.linhvuc }}</p>
+
+    <p><b>Tên đồ án:</b> {{ doan.tenda }}</p>
+    <p><b>Lĩnh vực:</b> {{ doan.linhvuc }}</p>
     <p><b>Ngày in:</b> {{ ngay_in }}</p>
 
     <table>
         <thead>
             <tr>
                 <th>STT</th>
-                <th>Tên đồ án</th>
-                <th>Lĩnh vực</th>
-                <th>Ngày bắt đầu</th>
-                <th>Ngày kết thúc</th>
-                <th>Giảng viên hướng dẫn</th>
+                <th>Mô tả công việc</th>
+                <th>Tiến độ (%)</th>
+                <th>Ngày cập nhật</th>
+                <th>Người kiểm tra</th>
             </tr>
         </thead>
         <tbody>
-            {% for da in doan_list %}
+            {% for td in tiendo_list %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ da.tenda }}</td>
-                <td>{{ da.linhvuc }}</td>
-                <td>{{ da.ngaybd|date:"d/m/Y" }}</td>
-                <td>{{ da.ngaykt|date:"d/m/Y" }}</td>
-                <td>{{ da.magv.hoten }}</td>
+                <td style="text-align:left;">{{ td.motacongviec }}</td>
+                <td>{{ td.tiendophantram }}</td>
+                <td>{{ td.ngaycapnhat|date:"d/m/Y" }}</td>
+                <td>{{ td.nguoikiemtra }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">Không có dữ liệu</td>
+                <td colspan="6">Chưa có báo cáo tiến độ nào.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
 </body>
 
 </html>

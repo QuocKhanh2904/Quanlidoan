@@ -60,23 +60,15 @@
               <li>
                 <a class="dropdown-item" href="{% url 'ds_huong_dan' %}">Danh sách đồ án hướng dẫn</a>
               </li>
-              <li><a class="dropdown-item" href="#">Phản biện đồ án</a></li>
-              <li><a class="dropdown-item" href="#">Đánh giá kết quả</a></li>
+              <li>
+                <a class="dropdown-item" href="{% url 'ds_phan_bien' %}">Phản biện đồ án</a>
+              </li>
             </ul>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Tin tức</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Liên hệ</a>
+            <a class="nav-link" href="{% url 'teacher_contact' %}">Liên hệ</a>
           </li>
         </ul>
-        <form class="d-flex" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-          <button class="btn btn-outline-success" type="submit">
-            Search
-          </button>
-        </form>
       </div>
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item dropdown">
@@ -84,7 +76,6 @@
             User
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#">Thông tin cá nhân</a></li>
             <li><a class="dropdown-item" href="{% url 'logout' %}">Đăng xuất</a></li>
           </ul>
         </li>
@@ -96,6 +87,8 @@
   {% block them_do_an %}{% endblock %}
   {% block sua_do_an %}{% endblock %}
   {% block xoa_do_an %}{% endblock %}
+  {% block banner-slider %}{% endblock banner-slider %}
+  {% block contact %}{% endblock contact %}
   <!-- footer -->
   <footer class="container-fluid bg-success text-center fixed-bottom p-2 mt-5">
     copyright @2025

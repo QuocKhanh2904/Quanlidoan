@@ -6,25 +6,25 @@
     <meta charset="UTF-8">
     <style>
         @font-face {
-            font-family: "NotoSans";
-            src: url("{% static 'fonts/NotoSans-Regular.ttf' %}") format("truetype");
+            font-family: "Roboto";
+            src: url("{% static 'fonts/Roboto-Regular.ttf' %}") format("truetype");
         }
 
         body {
-            font-family: "NotoSans", sans-serif;
+            font-family: "Roboto", sans-serif;
             font-size: 14px;
-            line-height: 1.6;
         }
 
         h1 {
             text-align: center;
-            font-weight: bold;
+            text-transform: uppercase;
+            color: #003366;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         th,
@@ -41,11 +41,12 @@
 </head>
 
 <body>
-    <h1>DANH SÁCH BẢO VỆ ĐỒ ÁN</h1>
 
-    <p><b>Hội đồng:</b> {{ hoidong.tenhd }}</p>
-    <p><b>Lĩnh vực:</b> {{ hoidong.linhvuc }}</p>
-    <p><b>Ngày in:</b> {{ ngay_in }}</p>
+    <h1>DANH SÁCH ĐỒ ÁN GIẢNG VIÊN HƯỚNG DẪN</h1>
+
+    <p><b>Họ tên giảng viên:</b> {{ giangvien.hoten }}</p>
+    <p><b>Đơn vị công tác:</b> {{ giangvien.donvicongtac }}</p>
+    <p><b>Số lượng hướng dẫn:</b> {{ doan_list.count }}</p>
 
     <table>
         <thead>
@@ -55,7 +56,7 @@
                 <th>Lĩnh vực</th>
                 <th>Ngày bắt đầu</th>
                 <th>Ngày kết thúc</th>
-                <th>Giảng viên hướng dẫn</th>
+                <th>Trạng thái</th>
             </tr>
         </thead>
         <tbody>
@@ -66,15 +67,21 @@
                 <td>{{ da.linhvuc }}</td>
                 <td>{{ da.ngaybd|date:"d/m/Y" }}</td>
                 <td>{{ da.ngaykt|date:"d/m/Y" }}</td>
-                <td>{{ da.magv.hoten }}</td>
+                <td>
+                    {% if da.trangthai == '0' %}Chờ duyệt
+                    {% else %}Chưa xác định{% endif %}
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">Không có dữ liệu</td>
+                <td colspan="6">Không có đồ án nào.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <p style="text-align:right; margin-top:20px;"><i>Ngày in:</i> {{ ngay_in }}</p>
+
 </body>
 
 </html>

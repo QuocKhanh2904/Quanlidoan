@@ -98,4 +98,12 @@
     * Mã giảng viên và ngày gửi sẽ được hệ thống tự động điền.
   </small>
 </div>
+
+<script>
+document.getElementById('form-tao-do-an')?.addEventListener('submit', function(e){
+  const btn = this.querySelector('button[type="submit"]');
+  if (btn) { btn.disabled = true; btn.innerText = 'Đang lưu...'; }
+});
+</script>
+
 {% endblock %}

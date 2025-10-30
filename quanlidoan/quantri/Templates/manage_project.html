@@ -36,14 +36,14 @@
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Hội đồng</label>
-      <select class="form-select" name="mahd">
+      <label class="form-label">Giảng viên hướng dẫn</label>
+      <select class="form-select" name="magv">
         <option value="">-- Tất cả --</option>
-        {% for hd in hoidongs %}
-        {% if mahd_selected == hd.mahd %}
-        <option value="{{ hd.mahd }}" selected>{{ hd.tenhd }}</option>
+        {% for gv in gvhds %}
+        {% if gvhd_selected == gv.magv__magv %}
+        <option value="{{ gv.magv__magv }}" selected>{{ gv.magv__hoten }}</option>
         {% else %}
-        <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+        <option value="{{ gv.magv__magv }}">{{ gv.magv__hoten }}</option>
         {% endif %}
         {% endfor %}
       </select>
@@ -62,7 +62,7 @@
           <th>Trạng thái</th>
           <th>SL tối đa</th>
           <th>Thời gian</th>
-          <th>Hội đồng</th>
+          <th>Giảng viên hướng dẫn</th>
           <th class="text-end">Hành động</th>
         </tr>
       </thead>
@@ -87,8 +87,8 @@
             {% endif %}
           </td>
           <td>{{ da.soluongtoida|default:"-" }}</td>
-          <td><small>{{ da.ngaybatdau|date:"d/m/Y" }} → {{ da.ngayketthuc|date:"d/m/Y" }}</small></td>
-          <td>{{ da.tenhd|default:"-" }}</td>
+          <td><small>{{ da.ngaybd|date:"d/m/Y" }} → {{ da.ngaykt|date:"d/m/Y" }}</small></td>
+          <td>{{ da.magv.hoten|default:"-" }}</td>
           <td class="text-end">
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-primary btn-edit" data-bs-toggle="modal"
@@ -162,11 +162,11 @@
             <input type="text" class="form-control" name="linhvuc" id="create_linhvuc">
           </div>
           <div class="col-md-6">
-            <label for="create_mahd" class="form-label">Hội đồng</label>
-            <select class="form-select" name="mahd" id="select">
+            <label for="create_magv" class="form-label">Giảng viên hướng dẫn</label>
+            <select class="form-select" name="magv" id="select">
               <option value="">-- Chọn --</option>
-              {% for hd in hoidongs %}
-              <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+              {% for gv in giangviens %}
+              <option value="{{ gv.magv }}">{{ gv.hoten }} - {{gv.donvicongtac}}</option>
               {% endfor %}
             </select>
           </div>
@@ -229,11 +229,11 @@
             <input type="text" class="form-control" name="linhvuc" id="edit_linhvuc">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Hội đồng</label>
-            <select class="form-select" name="mahd" id="edit_mahd">
+            <label class="form-label">Giảng viên hướng dẫn</label>
+            <select class="form-select" name="magv" id="edit_magv">
               <option value="">-- Chọn --</option>
-              {% for hd in hoidongs %}
-              <option value="{{ hd.mahd }}">{{ hd.tenhd }}</option>
+              {% for gv in giangviens %}
+              <option value="{{ gv.magv }}">{{ gv.hoten }} - {{gv.donvicongtac}}</option>
               {% endfor %}
             </select>
           </div>

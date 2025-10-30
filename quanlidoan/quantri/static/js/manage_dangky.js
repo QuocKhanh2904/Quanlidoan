@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <p><strong>Học viên:</strong> ${d.mahv__hoten}</p>
             <p><strong>Đồ án:</strong> ${d.mada__tenda}</p>
             <p><strong>Ngày đăng ký:</strong> ${d.ngaydk}</p>
-            <p><strong>Trạng thái:</strong> ${d.trangthai}</p>
           `;
                 } else content.innerHTML = `<p class="text-danger">${data.message}</p>`;
             } catch {

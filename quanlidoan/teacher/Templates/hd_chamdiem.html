@@ -1,0 +1,54 @@
+{% extends "teacher.html" %}
+{% block danh_sach_do_an %}
+<div class="container mt-4">
+  <a href="{{ back_url }}" class="btn btn-outline-secondary mb-3">← Quay lại</a>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="mb-3">{{ tenda }} <small class="text-muted">(#{{ mada }})</small></h5>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-sm-3">
+            <label class="form-label">Điểm (0–10)</label>
+            <input type="number" name="diem" class="form-control" min="0" max="10" step="0.1"
+                   value="{{ diem_hd|default:'' }}">
+          </div>
+          <div class="col-sm-9">
+            <label class="form-label">Nhận xét</label>
+            <textarea name="nhanxet" rows="3" class="form-control">{{ nx_hd|default:'' }}</textarea>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary">Lưu điểm</button>
+            <a href="{{ back_url }}" class="btn btn-light">Hủy</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <h2>Chấm điểm đồ án: {{ tenda }}</h2>
+
+  {% if is_secretary %}
+  <form method="post">
+    {% csrf_token %}
+    <label>Điểm hội đồng:</label>
+    <input type="number" name="diem" step="0.1" min="0" max="10" value="{{ diem_hdong|default_if_none:'' }}" required><br>
+
+    <label>Nhận xét hội đồng:</label><br>
+    <textarea name="nhanxet" rows="4" cols="60">{{ nx_hdong }}</textarea><br>
+
+    <button type="submit">💾 Lưu điểm</button>
+  </form>
+  {% else %}
+    <p><strong>Chỉ thư ký hội đồng được phép nhập điểm.</strong></p>
+    {% if diem_hdong %}
+      <p>Điểm hiện tại: <b>{{ diem_hdong }}</b></p>
+      <p>Nhận xét: {{ nx_hdong }}</p>
+    {% else %}
+      <p><i>Chưa có điểm hội đồng.</i></p>
+    {% endif %}
+  {% endif %}
+  <a href="{{ back_url }}">⬅ Quay lại</a>
+</div>
+{% endblock %}

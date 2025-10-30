@@ -1,11 +1,12 @@
 from django.shortcuts import render
+from django.db.models import Count
 from .models import *
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.http import HttpResponse
 from django.template.loader import get_template
-from xhtml2pdf import pisa
+from django.http import HttpResponse
+from weasyprint import HTML, CSS
 import json
 
 # Create your views here.
@@ -13,7 +14,36 @@ import json
 def home(request):
     if not request.user.is_staff and not request.user.is_superuser:
         return HttpResponseForbidden("Bạn không có quyền truy cập vào trang của admin.")
-    return render(request,'home.html')
+     # Thống kê đồ án theo trạng thái
+    da_trangthai = Doan.objects.values('trangthai').annotate(total=Count('mada'))
+
+    # Thống kê đăng ký theo trạng thái
+    dk_trangthai = Dangky.objects.values('trangthai').annotate(total=Count('madk'))
+
+    # Số lượng học viên và giảng viên
+    total_hocvien = Hocvien.objects.count()
+    total_giangvien = Giangvien.objects.count()
+
+    # Số lượng hội đồng theo lĩnh vực
+    hd_linhvuc = Hoidong.objects.values('linhvuc').annotate(total=Count('mahd'))
+
+    # Số lượng kết quả bảo vệ theo xếp loại
+    ketqua_xeploai = Ketquabaove.objects.values('xeploai').annotate(total=Count('makq'))
+
+    total_doan = Doan.objects.count()
+    total_dangky = Dangky.objects.count()
+
+    context = {
+        'da_trangthai': list(da_trangthai),
+        'dk_trangthai': list(dk_trangthai),
+        'total_hocvien': total_hocvien,
+        'total_giangvien': total_giangvien,
+        'hd_linhvuc': list(hd_linhvuc),
+        'ketqua_xeploai': list(ketqua_xeploai),
+        'total_doan': total_doan,
+        'total_dangky': total_dangky,
+    }
+    return render(request,'home.html', context)
 
 def normalize(value):
     value = value.strip() if value else None
@@ -22,16 +52,28 @@ def normalize(value):
 def manage_project(request):
     tenda = normalize(request.GET.get('tenda'))
     trangthai = normalize(request.GET.get('trangthai'))
-    mahd = normalize(request.GET.get('mahd'))
+    gvhd = normalize(request.GET.get('magv'))
+    doans = Doan.objects.all()
+    if tenda:
+        doans = doans.filter(tenda__icontains=tenda)
 
-    if trangthai: trangthai=int(trangthai)
-    if mahd: mahd=int(mahd)
+    if trangthai:
+        doans = doans.filter(trangthai__icontains=trangthai)
 
-    doans = Doan.doan_list(tenda,trangthai,mahd)
-    hoidongs = Hoidong.hoidong_list()
+    if gvhd:
+        doans = doans.filter(magv__magv=gvhd)
+    gvhds = Doan.objects.values('magv__magv', 'magv__hoten').distinct()
+    giangviens = Giangvien.objects.all().distinct()
 
-    context = {'doans': doans, 'hoidongs':hoidongs, 'tenda_selected': tenda,'trangthai_selected': trangthai,'mahd_selected': mahd}
-    return render(request,'manage_project.html', context)
+    context = {
+        'doans': doans,
+        'gvhds': gvhds,
+        'tenda_selected': tenda,
+        'trangthai_selected': trangthai,
+        'gvhd_selected': gvhd,
+        'giangviens': giangviens,
+    }
+    return render(request, 'manage_project.html', context)
 
 def doan_create(request):
     if request.method == "POST":
@@ -42,20 +84,11 @@ def doan_create(request):
         ngaykt = request.POST.get('ngaykt')
         linhvuc = request.POST.get('linhvuc')
         mota = request.POST.get('mota')
-        mahd = request.POST.get('mahd') or None
+        magv = request.POST.get('magv') or None
         file = request.FILES.get('file') or None
+        gv = Giangvien.objects.get(magv=magv) if magv else None
         try:
-            Doan.doan_create_raw(
-                tenda=tenda,
-                trangthai=trangthai,
-                soluongtoida=soluongtoida,
-                ngaybd=ngaybd,
-                ngaykt=ngaykt,
-                linhvuc=linhvuc,
-                mota=mota,
-                mahd=mahd,
-                file=file
-            )
+            Doan.objects.create(tenda=tenda, trangthai=trangthai, soluongtoida=soluongtoida, ngaybd=ngaybd, ngaykt=ngaykt, linhvuc=linhvuc, mota=mota, magv=gv, file=file)
             return JsonResponse({'status': 'success', 'message': 'Thêm đồ án thành công'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -70,21 +103,9 @@ def doan_update(request):
         ngaykt = request.POST.get('ngaykt')
         linhvuc = request.POST.get('linhvuc')
         mota = request.POST.get('mota') or None
-        mahd = request.POST.get('mahd') or None
         file = request.FILES.get('file') or None
         try:
-            Doan.doan_update_raw(
-                mada=mada,
-                tenda=tenda,
-                trangthai=trangthai,
-                soluongtoida=soluongtoida,
-                ngaybd=ngaybd,
-                ngaykt=ngaykt,
-                linhvuc=linhvuc,
-                mota=mota,
-                mahd=mahd,
-                file=file
-            )
+            Doan.doan_update_raw(mada=mada, tenda=tenda, trangthai=trangthai, soluongtoida=soluongtoida, ngaybd=ngaybd, ngaykt=ngaykt, linhvuc=linhvuc, mota=mota, file=file)
             return JsonResponse({'status': 'success', 'message': 'Cập nhật đồ án thành công'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -372,6 +393,7 @@ def manage_phancong(request):
     # --- Lấy dữ liệu lọc từ form GET ---
     tenda = normalize(request.GET.get('tenda'))
     linhvuc = normalize(request.GET.get('linhvuc'))
+    hoidongs = Hoidong.objects.all()
 
     # --- Gọi stored procedure sp_DanhSachDoAn_TrangThai2 ---
     with connection.cursor() as cursor:
@@ -397,6 +419,7 @@ def manage_phancong(request):
     # --- Truyền context sang template ---
     context = {
         'doans': doans,
+        'hoidongs' : hoidongs,
         'giangviens': giangviens,
         'tenda_selected': tenda,
         'linhvuc_selected': linhvuc,
@@ -404,44 +427,61 @@ def manage_phancong(request):
 
     return render(request, 'manage_phancongdoan.html', context)
 
-# ✅ Phân công giảng viên
+# ✅ Lấy danh sách giảng viên thuộc hội đồng
+def hoidong_giangvien(request):
+    mahd = request.GET.get('mahd')
+    if not mahd:
+        return JsonResponse({'status': 'error', 'message': 'Thiếu mã hội đồng.'})
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT GV.MaGV AS magv, GV.HoTen AS hoten
+                FROM THANHVIENHOIDONG TV
+                JOIN GIANGVIEN GV ON TV.MaGV = GV.MaGV
+                WHERE TV.MaHD = %s
+            """, [mahd])
+            cols = [c[0] for c in cursor.description]
+            data = [dict(zip(cols, row)) for row in cursor.fetchall()]
+        return JsonResponse({'status': 'success', 'data': data})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
+# ✅ Phân công hội đồng + giảng viên
 def phancongdoan_update(request):
     if request.method == 'POST':
         mada = request.POST.get('mada')
+        mahd = request.POST.get('mahd')
         magv = request.POST.get('magv')
 
-        if not mada or not magv:
+        if not (mada and magv):
             return JsonResponse({'status': 'error', 'message': 'Thiếu thông tin đồ án hoặc giảng viên.'})
 
         try:
             with connection.cursor() as cursor:
-                cursor.execute("EXEC sp_PhanCongGiangVien @MaDA=%s, @MaGV=%s", [mada, magv])
-                columns = [col[0] for col in cursor.description]
-                result = dict(zip(columns, cursor.fetchone()))
-            return JsonResponse(result)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Lỗi: {str(e)}'})
-    
-    return JsonResponse({'status': 'error', 'message': 'Phương thức không hợp lệ.'})
+                # 🔍 kiểm tra xem đồ án đã có hội đồng chưa
+                cursor.execute("SELECT MaHD FROM DOAN WHERE MaDA = %s", [mada])
+                row = cursor.fetchone()
+                existing_mahd = row[0] if row else None
 
+                if existing_mahd:
+                    # 🔒 đã có hội đồng → chỉ được đổi giảng viên trong hội đồng đó
+                    cursor.execute("""
+                        EXEC sp_CapNhatGiangVienTrongHoiDong @MaDA=%s, @MaHD=%s, @MaGV=%s
+                    """, [mada, existing_mahd, magv])
+                else:
+                    # 🆕 chưa có hội đồng → phân công mới cả hai
+                    cursor.execute("""
+                        EXEC sp_PhanCongHoiDong_GiangVien @MaDA=%s, @MaHD=%s, @MaGV=%s
+                    """, [mada, mahd, magv])
 
-# ✅ Từ chối đăng ký
-def phancongdoan_reject(request):
-    if request.method == 'POST':
-        mada = request.POST.get('mada')
-
-        if not mada:
-            return JsonResponse({'status': 'error', 'message': 'Thiếu mã đồ án.'})
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("EXEC sp_TuChoiDangKy @MaDA=%s", [int(mada)])
-                columns = [col[0] for col in cursor.description]
-                result = dict(zip(columns, cursor.fetchone()))
+                cols = [col[0] for col in cursor.description]
+                result = dict(zip(cols, cursor.fetchone()))
             return JsonResponse(result)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'Lỗi: {str(e)}'})
 
     return JsonResponse({'status': 'error', 'message': 'Phương thức không hợp lệ.'})
+
 
 def manage_dangky(request):
     mada = request.GET.get('mada')   
@@ -450,7 +490,7 @@ def manage_dangky(request):
     if mada:
         dangkys = Dangky.objects.filter(mada=mada).select_related('mada').order_by('-ngaydk')
     else:
-        dangkys = []
+        dangkys = Dangky.objects.all().order_by('-ngaydk')
     context = {'dangkys': dangkys, 'doans': doans, 'mada_selected': int(mada) if mada else '', 'lop_list': lop_list,}
     return render(request, 'manage_dangky.html', context)
 
@@ -520,9 +560,9 @@ def manage_baove(request):
     mada = request.GET.get('mada')   
     doans = Doan.objects.all()
     if mada:
-        bienbans = Bienban.objects.filter(mada=mada).select_related('mada').order_by('-ngaybaove')
+        bienbans = (Bienban.objects.filter(mada=mada).select_related('ketquabaove').order_by('-ngaybaove'))
     else:
-        bienbans = Bienban.objects.all()
+        bienbans = (Bienban.objects.all().select_related('ketquabaove').order_by('-ngaybaove'))
     context = {'bienbans': bienbans, 'doans': doans, 'mada_selected': int(mada) if mada else ''}
     return render(request, 'manage_baove.html', context)
 
@@ -687,24 +727,100 @@ def baove_update(request):
 def contact(request):
     return render(request, 'contact.html')
 
-def render_to_pdf(template_src, context_dict={}):
-    template = get_template(template_src)
-    html = template.render(context_dict)
-    response = HttpResponse(content_type='application/pdf')
-    pisa.CreatePDF(html, dest=response)
-    return response
 
 def export_doan_theo_hoidong(request, mahd):
-    try:
-        hoidong = Hoidong.objects.get(mahd=mahd)
-        doan_list = Doan.objects.filter(mahd=hoidong)
+    hoidong = Hoidong.objects.get(mahd=mahd)
+    doan_list = Doan.objects.filter(mahd=hoidong)
 
-        context = {
-            'hoidong': hoidong,
-            'doan_list': doan_list,
-            'ngay_in': timezone.now().strftime("%d/%m/%Y"),
-        }
-        return render_to_pdf('pdf/DsDoAnBaoVe.html', context)
+    template_path = 'pdf/DsDoAnBaoVe.html'
+    context = {
+        'hoidong': hoidong,
+        'doan_list': doan_list,
+        'ngay_in': timezone.now().strftime("%d/%m/%Y"),
+    }
 
-    except Hoidong.DoesNotExist:
-        return HttpResponse("Hội đồng không tồn tại.", status=404)
+    template = get_template(template_path)
+    html_content = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="BaoCao_HoiDong_{hoidong.mahd}.pdf"'
+
+    HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(response)
+
+    return response
+
+def export_tiendo_doan(request, mada):
+    doan = Doan.objects.get(mada=mada)
+    tiendo_list = Tiendo.objects.filter(mada=doan).order_by('-ngaycapnhat')
+
+    template_path = 'pdf/DsTienDo.html'
+    context = {
+        'doan': doan,
+        'tiendo_list': tiendo_list,
+        'ngay_in': timezone.now().strftime("%d/%m/%Y"),
+    }
+
+    template = get_template(template_path)
+    html_content = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="TienDo_DoAn_{doan.mada}.pdf"'
+    HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(response)
+
+    return response
+
+def export_ketqua_doan(request, mada):
+    doan = Doan.objects.get(mada=mada)
+
+    template_path = 'pdf/ketqua_doan.html'
+
+    context = {
+        'doan': doan,
+        'ngay_in': timezone.now().strftime("%d/%m/%Y"),
+    }
+
+    template = get_template(template_path)
+    html_content = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="KetQua_DoAn_{doan.mada}.pdf"'
+
+    HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(response)
+
+    return response
+
+def export_bienban_baove(request, mabb):
+    # Lấy biên bản
+    bienban = Bienban.objects.get(mabb=mabb)
+
+    # Lấy đồ án
+    doan = Doan.objects.get(mada=bienban.mada.mada)
+
+    # Lấy kết quả bảo vệ
+    ketqua = Ketquabaove.objects.filter(mabb=bienban).first()
+
+    # Lấy điểm từng thành viên hội đồng
+    diemthanhviens = Diemthanhvien.diemthanhvien_list(mahv=bienban.mahv.mahv)
+
+    # Lấy danh sách thành viên hội đồng & vai trò
+    thanhvien = Thanhvienhoidong.objects.filter(mahd=doan.mahd)
+
+    template_path = 'pdf/bienban_baove.html'
+    context = {
+        'doan': doan,
+        'bienban': bienban,
+        'ketqua': ketqua,
+        'diemthanhviens': diemthanhviens,
+        'thanhvien': thanhvien,
+        'ngay_in': timezone.now().strftime("%d/%m/%Y"),
+    }
+
+    template = get_template(template_path)
+    html_content = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="BienBanBaoVe_{bienban.mabb}.pdf"'
+
+    HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(response)
+    return response
+

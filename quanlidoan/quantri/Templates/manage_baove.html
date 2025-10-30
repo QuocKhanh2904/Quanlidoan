@@ -8,6 +8,7 @@
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBienBanModal">
             <i class="bi bi-plus-circle"></i> Thêm biên bản bảo vệ
         </button>
+
     </div>
 
     <!-- Bộ lọc -->
@@ -29,6 +30,13 @@
                     <button type="submit" class="btn btn-secondary">Lọc</button>
                 </div>
             </form>
+        </div>
+        <div class="card-body pt-0">
+            {% if mada_selected %}
+            <a href="{% url 'export_ketqua_doan' mada=mada_selected %}" class="btn btn-danger" target="_blank">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Xuất PDF kết quả
+            </a>
+            {% endif %}
         </div>
     </div>
 
@@ -57,8 +65,8 @@
                             <td>{{ bb.mada.tenda }}</td>
                             <td>{{ bb.ngaybaove|date:"d/m/Y" }}</td>
                             <td>{{ bb.diadiem }}</td>
-                            <td>{{ bb.diemtb|default:"-" }}</td>
-                            <td>{{ bb.xeploai|default:"-" }}</td>
+                            <td>{{ bb.ketquabaove.diem|floatformat:2|default:"-" }}</td>
+                            <td>{{ bb.ketquabaove.xeploai|default:"-" }}</td>
                             <td>
                                 <button class="btn btn-sm btn-info" data-bs-toggle="modal"
                                     data-bs-target="#viewBienBanModal" data-id="{{ bb.mabb }}">
@@ -71,6 +79,10 @@
                                 <button class="btn btn-sm btn-danger btnDeleteBienBan" data-id="{{ bb.mabb }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                <a href="{% url 'export_bienban_baove' mabb=bb.mabb %}" class="btn btn-danger"
+                                    target="_blank">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> Xuất PDF
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
@@ -159,67 +171,69 @@
 
 <!-- Modal Sửa Biên Bản -->
 <div class="modal fade" id="editBienBanModal" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <form id="editBienBanForm">
-        {% csrf_token %}
-        <input type="hidden" name="mabb" id="editMaBB">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editBienBanForm">
+                {% csrf_token %}
+                <input type="hidden" name="mabb" id="editMaBB">
 
-        <div class="modal-header bg-warning text-white">
-          <h5 class="modal-title">Chỉnh sửa biên bản & điểm thành viên hội đồng</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">Chỉnh sửa biên bản & điểm thành viên hội đồng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày bảo vệ</label>
+                        <input type="date" name="ngaybaove" id="editNgayBaoVe" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Địa điểm</label>
+                        <input type="text" name="diadiem" id="editDiaDiem" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Nội dung</label>
+                        <textarea name="noidung" id="editNoiDung" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="ghichu" id="editGhiChu" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- BẢNG ĐIỂM HỘI ĐỒNG -->
+                    <div class="col-12">
+                        <h5>Điểm thành viên hội đồng</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Thành viên</th>
+                                        <th>Vai trò</th>
+                                        <th>Điểm</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="editDiemTVBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-white">Lưu thay đổi</button>
+                </div>
+            </form>
         </div>
-
-        <div class="modal-body row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Ngày bảo vệ</label>
-            <input type="date" name="ngaybaove" id="editNgayBaoVe" class="form-control" required>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Địa điểm</label>
-            <input type="text" name="diadiem" id="editDiaDiem" class="form-control" required>
-          </div>
-
-          <div class="col-md-12">
-            <label class="form-label">Nội dung</label>
-            <textarea name="noidung" id="editNoiDung" class="form-control" rows="2"></textarea>
-          </div>
-
-          <div class="col-md-12">
-            <label class="form-label">Ghi chú</label>
-            <textarea name="ghichu" id="editGhiChu" class="form-control" rows="2"></textarea>
-          </div>
-
-          <hr class="my-3">
-
-          <!-- BẢNG ĐIỂM HỘI ĐỒNG -->
-          <div class="col-12">
-            <h5>Điểm thành viên hội đồng</h5>
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Thành viên</th>
-                    <th>Vai trò</th>
-                    <th>Điểm</th>
-                  </tr>
-                </thead>
-                <tbody id="editDiemTVBody">
-                  <tr><td colspan="3" class="text-center text-muted">Đang tải...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-warning text-white">Lưu thay đổi</button>
-        </div>
-      </form>
     </div>
-  </div>
 </div>
 
 <script src="{% static 'js/manage_baove.js' %}"></script>

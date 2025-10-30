@@ -1,0 +1,127 @@
+{% extends "teacher.html" %}
+{% load static %}
+{% block danh_sach_do_an %}
+
+<div class="container mt-4">
+
+  <!-- 🔍 Thanh tìm kiếm -->
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <form method="get" class="d-flex gap-2 flex-grow-1">
+      <div class="input-group">
+        <span class="input-group-text">🔎</span>
+        <input type="text" name="q" class="form-control"
+               placeholder="Tìm theo tên đề tài hoặc sinh viên…"
+               value="{{ q }}">
+      </div>
+      <div class="form-check ms-2">
+        <input class="form-check-input" type="checkbox" id="past" name="past" value="1"
+               {% if show_past %}checked{% endif %}>
+        <label for="past" class="form-check-label">Hiện cả lịch đã qua</label>
+      </div>
+      <button class="btn btn-primary">Lọc</button>
+      <a class="btn btn-outline-secondary" href="{% url 'hoi_dong_cua_toi' %}">Xóa</a>
+    </form>
+  </div>
+
+  <!-- 📋 Danh sách hội đồng -->
+  {% if hoidongs %}
+    {% for hd in hoidongs %}
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ hd.tenhd }}</strong>
+            <span class="text-muted ms-2">(#{{ hd.mahd }})</span>
+          </div>
+          <div class="text-muted">
+            {{ hd.ngaybaove|date:"Y-m-d"|default:"Chưa xếp lịch" }} · {{ hd.diadiem|default:"(cập nhật sau)" }}
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:100px;">Mã ĐA</th>
+                <th>Đề tài</th>
+                <th style="width:200px;">Sinh viên</th>
+                <th style="width:160px;">Lĩnh vực</th>
+                <th style="width:140px;">Trạng thái</th>
+                <th style="width:160px;">Điểm ĐA</th>
+                <th style="width:180px;" class="text-end">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in hd.de_tai %}
+              <tr>
+                <td>{{ d.mada }}</td>
+                <td class="fw-semibold">{{ d.tenda }}</td>
+                <td>{{ d.tenhv|default:"(chưa xác định)" }}</td>
+                <td>{{ d.linhvuc|default:"-" }}</td>
+                <td>
+                  {% with st=d.trangthai|stringformat:"s" %}
+                    {% if st == "0" %}
+                      <span class="badge bg-secondary-subtle text-secondary">Chưa duyệt</span>
+                    {% elif st == "1" %}
+                      <span class="badge bg-primary-subtle text-primary">Đã duyệt</span>
+                    {% elif st == "2" %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis">Đang thực hiện</span>
+                    {% elif st == "3" %}
+                      <span class="badge bg-success-subtle text-success">Hoàn thành</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted">N/A</span>
+                    {% endif %}
+                  {% endwith %}
+                </td>
+
+                <!-- Cột điểm trung bình hội đồng -->
+                <td class="text-center">
+                  {% if d.diem_hoidong %}
+                    <strong class="text-primary">{{ d.diem_hoidong|floatformat:2 }}</strong>
+                  {% else %}
+                    <span class="text-muted">–</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  {% if d.can_enter_score %}
+                      <a href="{% url 'cham_diem_hoi_dong' d.mada %}"
+                        class="btn btn-sm btn-success"
+                        title="Nhập điểm hội đồng cho đồ án này">
+                        ✏️ Nhập điểm
+                      </a>
+                  {% else %}
+                      <button class="btn btn-sm btn-secondary" disabled
+                              title="Chưa thể nhập điểm — đồ án này chưa có biên bản bảo vệ.">
+                        ✏️ Nhập điểm
+                      </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-3">
+                  Chưa có đề tài nào trong hội đồng này.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">
+      Bạn hiện chưa tham gia hội đồng nào, hoặc không có đề tài khớp bộ lọc.
+    </div>
+  {% endif %}
+</div>
+
+<!-- 💡 Kích hoạt tooltip Bootstrap -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
+});
+</script>
+
+{% endblock %}

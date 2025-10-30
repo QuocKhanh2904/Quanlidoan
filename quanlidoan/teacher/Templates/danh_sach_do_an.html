@@ -7,64 +7,89 @@
 <div class="container mt-4 doan-container">
   <!-- thống kê -->
   <div class="row mb-4 text-center">
-    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ tong_so_do_an }}</div><div class="stat-label">Tổng số đồ án</div></div></div>
-    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ tong_chua_duyet }}</div><div class="stat-label">Chưa duyệt</div></div></div>
-    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ tong_dang_thuc_hien }}</div><div class="stat-label">Đang thực hiện</div></div></div>
-    <div class="col-md-3"><div class="stat-card"><div class="stat-number">{{ tong_da_hoan_thanh }}</div><div class="stat-label">Hoàn thành</div></div></div>
-    
-  </div>
-
-<form id="searchForm" method="get" class="card mb-3">
-  <div class="card-body">
-    <div class="d-flex align-items-center gap-2 flex-nowrap overflow-auto">
-
-      <!-- Ô tìm kiếm (giãn hết) -->
-      <div class="input-group flex-grow-1">
-        <span class="input-group-text">🔎</span>
-        <input id="searchInput" type="text" name="q" class="form-control"
-               placeholder="Tìm theo tên, lĩnh vực, mô tả hoặc mã đồ án…"
-               value="{{ request.GET.q }}" autocomplete="off">
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-number">{{ tong_so_do_an }}</div>
+        <div class="stat-label">Tổng số đồ án</div>
       </div>
-
-      <select name="status" id="status-filter" class="form-select w-auto"
-            onchange="document.getElementById('searchForm').requestSubmit()">
-      <option value="">Tất cả trạng thái</option>
-      <option value="0" {% if request.GET.status == '0' %}selected{% endif %}>Chưa duyệt</option>
-      <option value="1" {% if request.GET.status == '1' %}selected{% endif %}>Đã duyệt</option>
-      <option value="2" {% if request.GET.status == '2' %}selected{% endif %}>Đang thực hiện</option>
-      <option value="3" {% if request.GET.status == '3' %}selected{% endif %}>Đã hoàn thành</option>
-    </select>
-
-      <!-- Nút -->
-      <button class="btn btn-primary flex-shrink-0" type="submit">Tìm</button>
-
-      <!-- Thêm đồ án (đẩy sang phải) -->
-      <a href="{% url 'them_do_an' %}" class="btn btn-success ms-auto flex-shrink-0">+ Thêm đồ án mới</a>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-number">{{ tong_chua_duyet }}</div>
+        <div class="stat-label">Chưa duyệt</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-number">{{ tong_dang_thuc_hien }}</div>
+        <div class="stat-label">Đang thực hiện</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-number">{{ tong_da_hoan_thanh }}</div>
+        <div class="stat-label">Hoàn thành</div>
+      </div>
     </div>
 
-    {# Chips (tuỳ chọn) #}
-    {% if request.GET.q or request.GET.status %}
+  </div>
+  <a href="{% url 'export_doan_giangvien' magv=request.user.giangvien.magv %}" class="btn btn-danger" target="_blank">
+    <i class="bi bi-file-earmark-pdf-fill"></i> Xuất PDF
+  </a>
+
+
+  <form id="searchForm" method="get" class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-2 flex-nowrap overflow-auto">
+
+        <!-- Ô tìm kiếm (giãn hết) -->
+        <div class="input-group flex-grow-1">
+          <span class="input-group-text">🔎</span>
+          <input id="searchInput" type="text" name="q" class="form-control"
+            placeholder="Tìm theo tên, lĩnh vực, mô tả hoặc mã đồ án…" value="{{ request.GET.q }}" autocomplete="off">
+        </div>
+
+        <select name="status" id="status-filter" class="form-select w-auto"
+          onchange="document.getElementById('searchForm').requestSubmit()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="0" {% if request.GET.status == '0' %}selected{% endif %}>Chưa duyệt</option>
+          <option value="1" {% if request.GET.status == '1' %}selected{% endif %}>Đã duyệt</option>
+          <option value="2" {% if request.GET.status == '2' %}selected{% endif %}>Đã đăng ký</option>
+          <option value="3" {% if request.GET.status == '3' %}selected{% endif %}>Đang thực hiện</option>
+          <option value="4" {% if request.GET.status == '4' %}selected{% endif %}>Đã hoàn thành</option>
+        </select>
+
+        <!-- Nút -->
+        <button class="btn btn-primary flex-shrink-0" type="submit">Tìm</button>
+
+        <!-- Thêm đồ án (đẩy sang phải) -->
+        <a href="{% url 'them_do_an' %}" class="btn btn-success ms-auto flex-shrink-0">+ Thêm đồ án mới</a>
+      </div>
+
+      {# Chips (tuỳ chọn) #}
+      {% if request.GET.q or request.GET.status %}
       <div class="mt-2 d-flex flex-wrap gap-2 small text-muted">
         {% if request.GET.status %}
-          <span class="badge bg-light text-dark">
-            Trạng thái:
-            {% if request.GET.status == '0' %}Chưa duyệt{% elif request.GET.status == '1' %}Đã duyệt{% elif request.GET.status == '2' %}Đang thực hiện{% elif request.GET.status == '3' %}Đã hoàn thành{% endif %}
-          </span>
+        <span class="badge bg-light text-dark">
+          Trạng thái:
+          {% if request.GET.status == '0' %}Chưa duyệt{% elif request.GET.status == '1' %}Đã duyệt{% elif
+          request.GET.status == '2' %}Đang thực hiện{% elif request.GET.status == '3' %}Đã hoàn thành{% endif %}
+        </span>
         {% endif %}
       </div>
-    {% endif %}
-  </div>
-</form>
-<script src="{% static 'js/search.js' %}" defer></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // auto submit khi gõ + đổi trạng thái:
-    // initSearchAutoSubmit();
+      {% endif %}
+    </div>
+  </form>
+  <script src="{% static 'js/search.js' %}" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // auto submit khi gõ + đổi trạng thái:
+      // initSearchAutoSubmit();
 
-    // hoặc: chỉ submit khi Enter/nút Tìm, còn đổi trạng thái vẫn auto:
-    initSearchOnSubmitOnly(); // autoSubmitStatus mặc định = true
-  });
-</script>
+      // hoặc: chỉ submit khi Enter/nút Tìm, còn đổi trạng thái vẫn auto:
+      initSearchOnSubmitOnly(); // autoSubmitStatus mặc định = true
+    });
+  </script>
 
   <div class="table-responsive shadow-sm rounded bg-white">
     <table class="table table-hover align-middle">
@@ -88,15 +113,17 @@
           <td>{{ doan.linhvuc|default:"-" }}</td>
           <td>
             {% if doan.trangthai|stringformat:"s" == "0" %}
-              <span class="status pending">Chưa duyệt</span>
+            <span class="status pending">Chưa duyệt</span>
             {% elif doan.trangthai|stringformat:"s" == "1" %}
-              <span class="status approved">Đã duyệt</span>
+            <span class="status approved">Đã duyệt</span>
             {% elif doan.trangthai|stringformat:"s" == "2" %}
-              <span class="status warning">Đang thực hiện</span>
+            <span class="status approved">Đã đăng ký</span>
             {% elif doan.trangthai|stringformat:"s" == "3" %}
-              <span class="status success">Đã hoàn thành</span> 
+            <span class="status warning">Đang thực hiện</span>
+            {% elif doan.trangthai|stringformat:"s" == "4" %}
+            <span class="status success">Đã hoàn thành</span>
             {% else %}
-              <span class="status unknown">Không xác định</span>
+            <span class="status unknown">Không xác định</span>
             {% endif %}
           </td>
           <td>
@@ -106,13 +133,16 @@
           <td>{{ doan.mota|default:"-" }}</td>
           <td>{{ doan.ngaygui|date:"Y-m-d" }}</td>
           <td class="text-nowrap">
-            <a href="{% url 'chi_tiet_do_an' doan.mada %}" class="btn btn-sm btn-outline-secondary" title="Xem chi tiết">👁</a>
+            <a href="{% url 'chi_tiet_do_an' doan.mada %}" class="btn btn-sm btn-outline-secondary"
+              title="Xem chi tiết">👁</a>
             <a href="{% url 'sua_do_an' doan.mada %}" class="btn btn-sm btn-outline-primary" title="Sửa">✏️</a>
             <a href="{% url 'xoa_do_an' doan.mada %}" class="btn btn-sm btn-outline-danger" title="Xóa">🗑️</a>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="8" class="text-center text-muted">Chưa có đồ án nào</td></tr>
+        <tr>
+          <td colspan="8" class="text-center text-muted">Chưa có đồ án nào</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

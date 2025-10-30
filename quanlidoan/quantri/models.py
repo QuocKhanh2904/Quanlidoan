@@ -108,6 +108,12 @@ class Diemthanhvien(models.Model):
     mabb = models.ForeignKey(Bienban, models.DO_NOTHING, db_column='MaBB')
     diem = models.FloatField(db_column='Diem', blank=True, null=True)
 
+    def diemthanhvien_list(mahv):
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC sp_GetDiemThanhVienByMaHV @MaHV = %s", [mahv])
+            rows = dictfetchall(cursor)
+        return rows
+
     def diemthanhvien_update_raw(mabb, diemtv):
         with connection.cursor() as cursor:
             for tv in diemtv:
@@ -142,6 +148,8 @@ class Doan(models.Model):
     linhvuc = models.CharField(db_column='LinhVuc', max_length=100, blank=True, null=True)
     ngaybd = models.DateField(db_column='NgayBD', blank=True, null=True)
     ngaykt = models.DateField(db_column='NgayKT', blank=True, null=True)
+    diemhuongdan = models.FloatField(db_column='DiemHuongDan', blank=True, null=True)
+    diemphanbien = models.FloatField(db_column='DiemPhanBien', blank=True, null=True)
     file = models.FileField(db_column='FileDoAn', upload_to='doan/', blank=True, null=True)
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
@@ -379,7 +387,6 @@ class Thanhvienhoidong(models.Model):
     vaitro = models.CharField(db_column='VaiTro', max_length=50, blank=True, null=True)
     magv = models.ForeignKey(Giangvien, models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey(Hoidong, models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
-
 
     def thanhvienhoidong_create_raw(vaitro, magv, mahd):
         with connection.cursor() as cursor:

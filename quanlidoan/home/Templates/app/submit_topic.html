@@ -6,6 +6,7 @@
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0" style="text-align: center;">📤 Nộp Đồ Án</h4>
         </div>
+        {% if tiendo.tiendophantram == 100 %}
         <div class="card-body">
             <form id="submitThesisForm" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -51,5 +52,12 @@
         </div>
     </div>
 </div>
+{% else %}
+<div class="container py-5">
+    <div class="alert alert-info text-center" role="alert">
+        📢 Để nộp đồ án, tiến độ của bạn phải đạt 100%. Vui lòng hoàn thành tiến độ trước khi nộp đồ án.
+    </div>
+</div>
+{% endif %}
 <script src="{% static 'app/js/submit_topic.js' %}"></script>
 {% endblock submit_topic %}

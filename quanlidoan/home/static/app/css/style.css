@@ -50,3 +50,14 @@
         transform: translate(-50%, -60%);
     }
 }
+
+.home-slider {
+    max-height: 380px;
+    /* giảm chiều cao */
+    overflow: hidden;
+}
+
+.home-slider img {
+    object-fit: cover;
+    height: 380px;
+}

@@ -38,11 +38,9 @@ button.addEventListener("click", function (event) {
         .then(data => {
             if (data.status === "success") {
                 console.log(data.message);
+                window.location.reload();
                 showToast(data.message);
-                // Thực hiện các hành động khác nếu cần, ví dụ: reset form
-                document.getElementById("motacongviec").value = "";
-                document.getElementById("filebaocao").value = "";
-                document.getElementById("filePreview").textContent = "";
+
             } else {
                 console.log(data.message);
                 showToast(data.message);

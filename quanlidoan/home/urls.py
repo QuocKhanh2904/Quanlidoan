@@ -7,6 +7,7 @@ urlpatterns = [
     path('topic/', views.topic, name='topic'),
     path('topic/register_topic/', views.register_topic, name='register_topic'),
     path('topic/regist_topic/', views.regist_topic, name='regist_topic'),
+    path('cancel-register/<int:mada>/', views.cancel_register, name='cancel_register'),
     path('report_progress/', views.report_progress, name='report_progress'),
     path('submit_report/', views.submit_report, name='submit_report'),
     path('submit_topic/', views.submit_topic, name='submit_topic'),

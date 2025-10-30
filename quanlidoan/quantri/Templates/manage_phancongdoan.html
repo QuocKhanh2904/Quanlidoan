@@ -32,7 +32,8 @@
           <th>Lĩnh vực</th>
           <th>Hội đồng</th>
           <th>Số lượng HV</th>
-          <th>Giảng viên hướng dẫn</th>
+          {% comment %} <th>Giảng viên hướng dẫn</th> {% endcomment %}
+          <th>Giảng viên phản biện</th>
           <th class="text-end">Hành động</th>
         </tr>
       </thead>
@@ -48,16 +49,20 @@
           <td class="text-end">
             <div class="btn-group">
               <!-- Phân công giảng viên -->
-              <button class="btn btn-sm btn-outline-primary btn-assign" data-bs-toggle="modal"
-                data-bs-target="#modalAssignGV" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}"
-                data-magv="{{ da.magv|default_if_none:'' }}">
+              <button class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalAssignGV"
+                data-mada="{{ da.mada }}"
+                data-tenda="{{ da.tenda }}"
+                data-mahd="{{ da.mahd|default:'' }}"
+                data-magv="{{ da.magv|default:'' }}">
                 Phân công
               </button>
-              <!-- Từ chối -->
+              {% comment %} <!-- Từ chối -->
               <button class="btn btn-sm btn-outline-danger btn-reject" data-bs-toggle="modal"
                 data-bs-target="#modalReject" data-mada="{{ da.mada }}" data-tenda="{{ da.tenda|escapejs }}">
                 Từ chối
-              </button>
+              </button> {% endcomment %}
             </div>
           </td>
         </tr>
@@ -71,30 +76,38 @@
   </div>
 </div>
 
-<!-- Modal phân công giảng viên -->
+<!-- Modal phân công hội đồng & giảng viên -->
 <div class="modal fade" id="modalAssignGV" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form id="assignGVForm" method="post" class="modal-content">
       {% csrf_token %}
-      <!-- input ẩn để gửi -->
       <input type="hidden" name="mada" id="assign_mada_hidden">
 
       <div class="modal-header">
-        <h5 class="modal-title">Phân công giảng viên hướng dẫn</h5>
+        <h5 class="modal-title">Phân công hội đồng & giảng viên phản biện</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
         <p><strong>Mã đồ án:</strong> <span id="assign_mada_text"></span></p>
-        <p><strong>Đồ án:</strong> <span id="assign_tenda"></span></p>
+        <p><strong>Tên đồ án:</strong> <span id="assign_tenda"></span></p>
 
+        <!-- 🟦 Chọn hội đồng -->
         <div class="mb-3">
-          <label class="form-label">Giảng viên hướng dẫn</label>
+          <label class="form-label">Hội đồng</label>
+          <select class="form-select" name="mahd" id="assign_mahd" required>
+            <option value="">-- Chọn hội đồng --</option>
+            {% for hd in hoidongs %}
+            <option value="{{ hd.mahd }}">{{ hd.tenhd }} ({{ hd.linhvuc }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 🟩 Chọn giảng viên (lọc theo hội đồng) -->
+        <div class="mb-3">
+          <label class="form-label">Giảng viên phản biện</label>
           <select class="form-select" name="magv" id="assign_magv" required>
             <option value="">-- Chọn giảng viên --</option>
-            {% for gv in giangviens %}
-            <option value="{{ gv.magv }}">{{ gv.hoten }}</option>
-            {% endfor %}
           </select>
         </div>
       </div>

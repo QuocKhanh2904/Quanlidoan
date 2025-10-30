@@ -143,6 +143,7 @@ class Tiendo(models.Model):
     nguoikiemtra = models.CharField(db_column='NguoiKiemTra', max_length=100, blank=True, null=True)
     mada = models.ForeignKey(Doan, models.DO_NOTHING, db_column='MaDA', blank=True, null=True)
     file = models.FileField(db_column='File', upload_to='baocao/', blank=True, null=True)
+    baocao = models.ImageField(upload_to="baocao/", blank=True, null=True)
         
     class Meta:
         managed = False

@@ -1,5 +1,16 @@
 {% extends 'app/base.html' %} {% load static %}
 {% block topic %}
+{% if messages %}
+<div class="my-3">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="container my-5">
   <h2 class="text-center text-primary mb-4">ĐĂNG KÝ ĐỀ TÀI</h2>
 
@@ -58,16 +69,26 @@
             </button>
           </td>
           <td>
-            {% if userTopic == None %}
+            {% if not dangky %}
+            <!-- Nếu chưa đăng ký -->
             <a href="{% url 'register_topic' %}?topic_id={{ topic.mada }}">
               <button class="btn btn-success btn-sm">
                 <i class="bi bi-check-circle"></i> Đăng ký
               </button>
             </a>
+            {% elif dangky.mada.mada == topic.mada and dangky.trangthai == '0' %}
+            <a href="{% url 'cancel_register' dangky.mada.mada %}"
+              onclick="return confirm('Bạn có chắc muốn hủy đăng ký đề tài này?');">
+              <button class="btn btn-danger btn-sm">
+                <i class="bi bi-x-circle"></i> Hủy đăng ký
+              </button>
+            </a>
             {% else %}
-            <button class="btn btn-secondary btn-sm" disabled>
-              {% endif %}
+            <!-- Nếu đã đăng ký đề tài khác hoặc đã duyệt -->
+            <button class="btn btn-secondary btn-sm" disabled>Đã đăng ký</button>
+            {% endif %}
           </td>
+
         </tr>
         {% endfor %}
       </tbody>

@@ -17,7 +17,7 @@
             <p><strong>Hội đồng chấm:</strong> {{ thongtindoan.tenhd }}</p>
         </div>
     </div>
-
+    {% if bienban %}
     <!-- Bảng điểm từng thành viên -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white">
@@ -39,7 +39,7 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ tv.tengv }}</td>
                         <td>{{ tv.vaitro }}</td>
-                        <td>{{ tv.diem }}</td>
+                        <td>{{ tv.diem|floatformat:1 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -56,7 +56,7 @@
             <div class="row text-center">
                 <div class="col-md-4 mb-3">
                     <h6 class="text-muted">Điểm đồ án</h6>
-                    <p class="fs-5 fw-bold text-danger">{{ ketqua.diem }}</p>
+                    <p class="fs-5 fw-bold text-danger">{{ ketqua.diem|floatformat:2 }}</p>
                 </div>
                 <div class="col-md-4 mb-3">
                     <h6 class="text-muted">Đánh giá</h6>
@@ -64,10 +64,15 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <h6 class="text-muted">Xếp loại</h6>
-                    <p class="fs-5">{{ ketqua.xeploai }}</p>
+                    <p class="fs-5">{{ ketqua.xeploai}}</p>
                 </div>
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="alert alert-info text-center" role="alert">
+        📢 Kết quả sẽ được cập nhật sau khi bảo vệ đồ án.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

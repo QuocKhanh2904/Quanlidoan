@@ -1,49 +1,80 @@
 document.addEventListener('DOMContentLoaded', () => {
   // --- Lấy các thành phần giao diện ---
   const assignModal = document.getElementById('modalAssignGV');
-  const rejectModal = document.getElementById('modalReject');
-  const toastEl = document.getElementById('toast');
-  const toastBody = toastEl.querySelector('.toast-body');
-  const toast = new bootstrap.Toast(toastEl);
+  const assignForm = document.getElementById('assignGVForm');
+  const selectHD = document.getElementById('assign_mahd');
+  const selectGV = document.getElementById('assign_magv');
 
-  // --------------------------------------------------
-  // 🟦 Hiển thị modal "Phân công giảng viên"
-  // --------------------------------------------------
+  // Khi mở modal
   assignModal.addEventListener('show.bs.modal', event => {
-  const button = event.relatedTarget;
-  const mada = button.getAttribute('data-mada');
-  const tenda = button.getAttribute('data-tenda');
-  const magv = button.getAttribute('data-magv');
-
-  // Gán dữ liệu vào form
-  document.getElementById('assign_mada_hidden').value = mada;   // input hidden (để gửi form)
-  document.getElementById('assign_mada_text').textContent = mada; // span hiển thị mã đồ án
-  document.getElementById('assign_tenda').textContent = tenda;
-
-  // Reset lựa chọn giảng viên
-  const select = document.getElementById('assign_magv');
-  select.value = magv || '';
-});
-
-
-  // --------------------------------------------------
-  // 🟥 Hiển thị modal "Từ chối đăng ký"
-  // --------------------------------------------------
-  rejectModal.addEventListener('show.bs.modal', event => {
     const button = event.relatedTarget;
     const mada = button.getAttribute('data-mada');
     const tenda = button.getAttribute('data-tenda');
+    const mahd = button.getAttribute('data-mahd');
+    const magv = button.getAttribute('data-magv');
 
-    document.getElementById('reject_mada').value = mada;
-    document.getElementById('reject_tenda').textContent = tenda;
-    document.getElementById('reject_id').textContent = mada;
+    document.getElementById('assign_mada_hidden').value = mada;
+    document.getElementById('assign_mada_text').textContent = mada || '(Không có)';
+    document.getElementById('assign_tenda').textContent = tenda || '(Không có)';
+
+    const selectHD = document.getElementById('assign_mahd');
+    const selectGV = document.getElementById('assign_magv');
+
+    if (mahd) {
+      // Đã có hội đồng -> khóa lại
+      selectHD.value = mahd;
+      selectHD.disabled = true;
+      // tải giảng viên thuộc hội đồng đó
+      fetch(`/quantri/hoidong/giangvien/?mahd=${mahd}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'success') {
+            selectGV.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+            d.data.forEach(gv => {
+              const opt = document.createElement('option');
+              opt.value = gv.magv;
+              opt.textContent = gv.hoten;
+              selectGV.appendChild(opt);
+            });
+            if (magv) selectGV.value = magv;
+          }
+        });
+    } else {
+      // Chưa có hội đồng -> cho phép chọn
+      selectHD.value = '';
+      selectHD.disabled = false;
+      selectGV.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+    }
   });
-  
-  // --------------------------------------------------
-  // 🟩 Gửi yêu cầu PHÂN CÔNG GIẢNG VIÊN
-  // --------------------------------------------------
-  const assignForm = document.getElementById('assignGVForm');
-  assignForm.addEventListener('submit', async (e) => {
+
+  // 🟦 Khi chọn hội đồng → lấy danh sách giảng viên trong hội đồng
+  selectHD.addEventListener('change', async () => {
+    const mahd = selectHD.value;
+    if (!mahd) {
+      selectGV.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+      return;
+    }
+    try {
+      const res = await fetch(`/quantri/hoidong/giangvien/?mahd=${mahd}`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        selectGV.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+        data.data.forEach(gv => {
+          const opt = document.createElement('option');
+          opt.value = gv.magv;
+          opt.textContent = gv.hoten;
+          selectGV.appendChild(opt);
+        });
+      } else {
+        selectGV.innerHTML = '<option value="">Không có giảng viên</option>';
+      }
+    } catch {
+      selectGV.innerHTML = '<option value="">Lỗi tải giảng viên</option>';
+    }
+  });
+
+  // 🟩 Gửi form phân công
+  assignForm.addEventListener('submit', async e => {
     e.preventDefault();
     const url = "/quantri/phancongdoan/update/";
     const formData = new FormData(assignForm);
@@ -55,42 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'X-CSRFToken': getCookie('csrftoken') },
       });
       const data = await response.json();
-
-      showToast(data.message, data.status);
       if (data.status === 'success') {
-        setTimeout(() => window.location.reload(), 1000);
-      }
-    } catch (err) {
+        setTimeout(() => window.location.reload(), 600);
+      } else alert(data.message)
+
+    } catch {
       showToast('Lỗi kết nối đến máy chủ!', 'error');
     }
   });
 
-  // --------------------------------------------------
-  // 🟧 Gửi yêu cầu TỪ CHỐI ĐĂNG KÝ
-  // --------------------------------------------------
-  const rejectForm = document.getElementById('rejectForm');
-  rejectForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const url = "/quantri/phancongdoan/reject/";
-    const formData = new FormData(rejectForm);
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-CSRFToken': getCookie('csrftoken') },
-      });
-      const data = await response.json();
-
-      showToast(data.message, data.status);
-      if (data.status === 'success') {
-        notify(d.message || 'Đã hủy yêu cầu');
-        setTimeout(() => window.location.reload(), 1000);
-      }
-    } catch (err) {
-      showToast('Không thể gửi yêu cầu. Vui lòng thử lại!', 'error');
-    }
-  });
 
   // --------------------------------------------------
   // ⚙️ Hàm tiện ích: Hiển thị thông báo (Toast)

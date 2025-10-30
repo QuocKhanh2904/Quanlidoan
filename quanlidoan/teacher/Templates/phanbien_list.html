@@ -1,0 +1,114 @@
+{% extends "teacher.html" %}
+{% block danh_sach_do_an %}
+
+<div class="container mt-4">
+  <h4 class="fw-bold mb-3 text-primary">🎓 Danh sách đồ án phản biện</h4>
+
+  <!-- 🔍 Bộ lọc tìm kiếm -->
+  <form method="get" class="d-flex gap-2 mb-3">
+    <input type="text" name="q" value="{{ q }}" placeholder="Tìm theo tên đề tài hoặc sinh viên..." class="form-control">
+    <button class="btn btn-primary">Lọc</button>
+  </form>
+
+  <!-- 📋 Bảng danh sách -->
+  <div class="table-responsive">
+    <table class="table table-striped align-middle shadow-sm">
+      <thead class="table-light">
+        <tr class="text-center">
+          <th style="width:80px;">Mã ĐA</th>
+          <th>Đề tài</th>
+          <th style="width:200px;">Sinh viên</th>
+          <th style="width:200px;">Hội đồng</th>
+          <th style="width:160px;">Ngày bảo vệ</th>
+          <th style="width:120px;">Tiến độ</th>
+          <th style="width:100px;">Điểm PB</th>
+          <th style="width:160px;">Trạng thái</th>
+          <th style="width:160px;" class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="text-center">
+          <td>{{ r.MaDA }}</td>
+          <td class="text-start fw-semibold">{{ r.TenDA }}</td>
+          <td>{{ r.TenHV|default:"(chưa có)" }}</td>
+          <td>{{ r.TenHD|default:"-" }}</td>
+          <td>{{ r.NgayBaoVe|date:"Y-m-d"|default:"(chưa có)" }}</td>
+
+          <!-- ✅ Cột tiến độ -->
+          <td>
+            {% if r.TienDo >= 100 %}
+              <span class="badge bg-success">{{ r.TienDo }}%</span>
+            {% elif r.TienDo > 0 %}
+              <span class="badge bg-warning text-dark">{{ r.TienDo }}%</span>
+            {% else %}
+              <span class="badge bg-secondary">0%</span>
+            {% endif %}
+          </td>
+
+          <!-- ✅ Cột điểm phản biện -->
+          <td>
+            {% if r.DiemPhanBien %}
+              <span class="fw-bold text-success">{{ r.DiemPhanBien|floatformat:1 }}</span>
+            {% else %}
+              <span class="text-muted">–</span>
+            {% endif %}
+          </td>
+
+          <!-- ✅ Cột trạng thái -->
+          <td>
+            {% if r.DiemPhanBien %}
+              <span class="badge bg-success">✅ Đã chấm</span>
+            {% elif r.TienDo < 100 %}
+              <span class="badge bg-danger">⛔ Chưa đủ 100%</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">🕒 Chưa chấm</span>
+            {% endif %}
+          </td>
+
+          <!-- ✅ Cột hành động -->
+          <td class="text-end">
+            {% if r.TienDo < 100 %}
+              <button type="button" class="btn btn-sm btn-secondary"
+                      data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Chưa thể chấm — đồ án này chưa hoàn thành 100% tiến độ." disabled>
+                ✏️ Chấm điểm
+              </button>
+            {% else %}
+              {% if r.DiemPhanBien %}
+                <a href="{% url 'cham_diem_phan_bien' r.MaDA %}" 
+                   class="btn btn-sm btn-outline-success"
+                   data-bs-toggle="tooltip" title="Xem hoặc chỉnh sửa điểm phản biện">
+                  ✏️ Sửa điểm
+                </a>
+              {% else %}
+                <a href="{% url 'cham_diem_phan_bien' r.MaDA %}" 
+                   class="btn btn-sm btn-success"
+                   data-bs-toggle="tooltip" title="Nhập điểm phản biện cho đồ án này">
+                  ✏️ Chấm điểm
+                </a>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center text-muted py-3">
+            Không có đồ án nào cần phản biện.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 💡 Kích hoạt tooltip Bootstrap -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
+});
+</script>
+
+{% endblock %}

@@ -5,6 +5,11 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">Quản lý tiến độ đồ án</h3>
+        {% if mada_selected %}
+        <a href="{% url 'export_tiendo_doan' mada=mada_selected %}" class="btn btn-danger" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
+        </a>
+        {% endif %}
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTiendoModal">
             <i class="bi bi-plus-circle"></i> Thêm tiến độ
         </button>
@@ -87,7 +92,7 @@
                             <td>
                                 <div class="progress" style="height: 20px;">
                                     <div class="progress-bar" style="width: {{ td.tiendophantram }}%">
-                                        {{ td.tiendophantram }}%
+                                        {% if td.tiendophantram %}{{ td.tiendophantram }}%{% endif %}
                                     </div>
                                 </div>
                             </td>
