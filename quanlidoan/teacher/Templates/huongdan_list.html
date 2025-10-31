@@ -16,8 +16,9 @@
         <option value="">Tất cả trạng thái</option>
         <option value="0" {% if status == '0' %}selected{% endif %}>Chưa duyệt</option>
         <option value="1" {% if status == '1' %}selected{% endif %}>Đã duyệt</option>
-        <option value="2" {% if status == '2' %}selected{% endif %}>Đang thực hiện</option>
-        <option value="3" {% if status == '3' %}selected{% endif %}>Hoàn thành</option>
+        <option value="2" {% if status == '2' %}selected{% endif %}>Đã đăng ký</option>
+        <option value="3" {% if status == '3' %}selected{% endif %}>Đang thực hiện</option>
+        <option value="4" {% if status == '4' %}selected{% endif %}>Hoàn thành</option>
       </select>
       <button class="btn btn-primary">Lọc</button>
       <a class="btn btn-outline-secondary" href="{% url 'ds_huong_dan' %}">Xóa</a>
@@ -48,8 +49,9 @@
             {% with st=p.trangthai|stringformat:"s" %}
               {% if st == "0" %}<span class="badge bg-secondary-subtle text-secondary">Chưa duyệt</span>
               {% elif st == "1" %}<span class="badge bg-primary-subtle text-primary">Đã duyệt</span>
-              {% elif st == "2" %}<span class="badge bg-warning-subtle text-warning-emphasis">Đang thực hiện</span>
-              {% elif st == "3" %}<span class="badge bg-success-subtle text-success">Hoàn thành</span>
+              {% elif st == "2" %}<span class="badge bg-primary-subtle text-primary">Đã đăng ký</span>
+              {% elif st == "3" %}<span class="badge bg-warning-subtle text-warning-emphasis">Đang thực hiện</span>
+              {% elif st == "4" %}<span class="badge bg-success-subtle text-success">Hoàn thành</span>
               {% else %}<span class="badge bg-light text-muted">N/A</span>{% endif %}
             {% endwith %}
           </td>

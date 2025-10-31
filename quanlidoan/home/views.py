@@ -68,7 +68,7 @@ def regist_topic(request):
     user = request.user.hocvien.mahv
     try:
         Dangky.dangky_create_raw(mada=topicId, mahv=user, trangthai='0', ngaydk=timezone.now())
-        return JsonResponse({"status": "success", "message": "Đăng ký thành công!"})
+        return JsonResponse({"status": "success", "message": "Đăng ký đề tài thành công!", "redirect_url": "/student/topic/"})
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"Đăng ký thất bại: {str(e)}"})
 
@@ -93,7 +93,7 @@ def report_progress(request):
     doans = Dangky.dangky_list(mahv=request.user.hocvien.mahv)
     doan = doans[0] if doans else None
     dangky = Dangky.objects.get(mahv=request.user.hocvien)
-    tiendos = Tiendo.tiendo_list(mada=doan['mada']) if doan else []
+    tiendos = Tiendo.objects.filter(mada=doan['mada']).order_by('-ngaycapnhat') if doan else []
     context = {'doan': doan, 'tiendos': tiendos, 'dangky': dangky}
     return render(request, 'app/report_progress.html', context)
 

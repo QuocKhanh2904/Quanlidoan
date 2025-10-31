@@ -171,7 +171,7 @@ def DanhSachDoAn(request):
         """)
         params += [like, like, like, like]
 
-    if status in {"0", "1", "2", "3"}:
+    if status in {"0", "1", "2", "3", "4"}:
         where.append("D.TrangThai = %s")
         params.append(int(status))
 
@@ -195,8 +195,7 @@ def DanhSachDoAn(request):
 
             ISNULL(Tlatest.TienDoPhanTram,0) AS tiendo,
             Tlatest.NgayCapNhat               AS ngaytiendo
-        FROM HUONGDANDOAN HDD
-        JOIN DOAN D ON D.MaDA = HDD.MaDA
+        FROM  DOAN D 
         LEFT JOIN (
             SELECT DK.MaDA, HV.HoTen
             FROM DANGKY DK
@@ -492,8 +491,8 @@ def _is_supervisor(magv, mada):
     with connection.cursor() as c:
         c.execute("""
             SELECT COUNT(*) 
-            FROM HUONGDANDOAN 
-            WHERE MaGV=%s AND MaDA=%s AND (VaiTro=N'Hướng dẫn' OR VaiTro IS NULL)
+            FROM DOAN 
+            WHERE DOAN.MaGV = %s and DOAN.MaDA = %s
         """, [magv, mada])
         cnt, = c.fetchone()
     return cnt > 0
@@ -523,16 +522,16 @@ def DanhSachHuongDan(request):
     q = (request.GET.get("q") or "").strip()
     status = (request.GET.get("status") or "").strip()
 
-    where = ["HDD.MaGV = %s", "(HDD.VaiTro=N'Hướng dẫn' OR HDD.VaiTro IS NULL)"]
+    where = ["D.MaGV = %s"]  # ✅ chỉ lọc theo mã giảng viên trong bảng DOAN
     params = [magv]
 
     if q:
         like = f"%{q}%"
         where.append("""
             (
-              D.TenDA LIKE %s OR D.LinhVuc LIKE %s OR D.MoTa LIKE %s
-              OR CAST(D.MaDA AS NVARCHAR(50)) LIKE %s
-              OR HV.HoTen LIKE %s
+            D.TenDA LIKE %s OR D.LinhVuc LIKE %s OR D.MoTa LIKE %s
+            OR CAST(D.MaDA AS NVARCHAR(50)) LIKE %s
+            OR HV.HoTen LIKE %s
             )
         """)
         params += [like, like, like, like, like]
@@ -552,14 +551,13 @@ def DanhSachHuongDan(request):
                 D.TrangThai AS trangthai,
                 D.MoTa AS mota,
                 D.NgayGui AS ngaygui,
-                D.DiemHuongDan AS diem_hd,             -- ✅ điểm hướng dẫn
-                D.NhanXetHuongDan AS nhanxet_hd,       -- ✅ nhận xét
-                D.NgayChamHuongDan AS ngaycham_hd,     -- ✅ ngày chấm
+                D.DiemHuongDan AS diem_hd,
+                D.NhanXetHuongDan AS nhanxet_hd,
+                D.NgayChamHuongDan AS ngaycham_hd,
                 HV.HoTen AS tenhv,
                 ISNULL(Tlatest.TienDoPhanTram,0) AS tiendo,
                 Tlatest.NgayCapNhat AS ngaytiendo
-            FROM HUONGDANDOAN HDD
-            JOIN DOAN D ON D.MaDA = HDD.MaDA
+            FROM DOAN D
             LEFT JOIN (
                 SELECT DK.MaDA, HV.HoTen
                 FROM DANGKY DK 
@@ -583,6 +581,8 @@ def DanhSachHuongDan(request):
         "status": status,
         "count_filtered": len(projects),
     })
+
+    
 
 # ---- 2.2 Xem & giao tiến độ cho đồ án hướng dẫn ----
 def HD_XemTienDo(request, mada):
@@ -712,13 +712,13 @@ def HD_DanhGiaTienDo(request, matd):
         return redirect("hd_xem_tiendo", mada=mada)
 
 
-
+    gv = Giangvien.objects.get(magv=magv)
     with connection.cursor() as c:
         c.execute("""
             UPDATE TIENDO
             SET TienDoPhanTram=%s, NguoiKiemTra=%s
             WHERE MaTD=%s
-        """, [new_percent, str(magv), matd])
+        """, [new_percent, str(gv.hoten), matd])
 
         c.execute("""
             SELECT TOP 1 TienDoPhanTram

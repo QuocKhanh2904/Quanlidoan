@@ -46,6 +46,7 @@ function registerTopic(topicId, action, button) {
                 button.innerHTML = "✅ Đã đăng ký";
                 button.classList.remove("btn-primary");
                 button.classList.add("btn-success");
+                window.location.href = data.redirect_url;
             } else {
                 button.innerHTML = "❌ Thử lại";
                 button.disabled = false;
