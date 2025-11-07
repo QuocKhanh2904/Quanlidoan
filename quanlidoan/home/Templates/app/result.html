@@ -18,6 +18,35 @@
         </div>
     </div>
     {% if bienban %}
+    <!-- Bảng đồ án -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-person-lines-fill me-2"></i>Điểm đồ án
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0 text-center">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Thành phần</th>
+                        <th>Điểm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ 1 }}</td>
+                        <td>Điểm hướng dẫn</td>
+                        <td>{{ bienban.mada.diemhuongdan|floatformat:1 }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ 2 }}</td>
+                        <td>Điểm phản biện</td>
+                        <td>{{ bienban.mada.diemphanbien|floatformat:1 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <!-- Bảng điểm từng thành viên -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white">

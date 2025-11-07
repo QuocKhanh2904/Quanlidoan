@@ -81,6 +81,8 @@ class Doan(models.Model):
     linhvuc = models.CharField(db_column='LinhVuc', max_length=100, blank=True, null=True)
     ngaybd = models.DateField(db_column='NgayBD', blank=True, null=True)
     ngaykt = models.DateField(db_column='NgayKT', blank=True, null=True)
+    diemhuongdan = models.FloatField(db_column='DiemHuongDan', blank=True, null=True)
+    diemphanbien = models.FloatField(db_column='DiemPhanBien', blank=True, null=True)
     file = models.FileField(db_column='FileDoAn', upload_to='doan/', blank=True, null=True)
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)

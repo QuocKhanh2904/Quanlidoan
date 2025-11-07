@@ -75,13 +75,13 @@
             {% if da.trangthai == "0" %}
             <span class="badge bg-danger">Chờ duyệt</span>
             {% elif da.trangthai == "1" %}
-            <span class="badge bg-success">Đã duyệt</span>
+            <span class="badge bg-warning text-dark">Đã duyệt</span>
             {% elif da.trangthai == "2" %}
-            <span class="badge bg-warning text-dark">Đã đăng ký</span>
+            <span class="badge bg-success">Đã đăng ký</span>
             {% elif da.trangthai == "3" %}
             <span class="badge bg-warning text-dark">Đang thực hiện</span>
             {% elif da.trangthai == "4" %}
-            <span class="badge bg-warning text-dark">Đã hoàn thành</span>
+            <span class="badge bg-success text-dark">Đã hoàn thành</span>
             {% else %}
             <span class="badge bg-secondary">{{ da.trangthai|default:"-" }}</span>
             {% endif %}
@@ -209,7 +209,6 @@
             <select class="form-select" name="trangthai" id="edit_trangthai">
               <option value="0">Chờ duyệt</option>
               <option value="1">Đã duyệt</option>
-              <option value="2">Đã đăng ký</option>
             </select>
           </div>
           <div class="col-md-3">

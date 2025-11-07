@@ -32,6 +32,8 @@ def home(request):
 
     total_doan = Doan.objects.count()
     total_dangky = Dangky.objects.count()
+    total_ketqua = Ketquabaove.objects.count()
+    total_hoidong = Hoidong.objects.count()
 
     context = {
         'da_trangthai': list(da_trangthai),
@@ -42,6 +44,8 @@ def home(request):
         'ketqua_xeploai': list(ketqua_xeploai),
         'total_doan': total_doan,
         'total_dangky': total_dangky,
+        'total_ketqua': total_ketqua,
+        'total_hoidong': total_hoidong,
     }
     return render(request,'home.html', context)
 

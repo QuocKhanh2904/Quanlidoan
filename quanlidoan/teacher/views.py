@@ -77,6 +77,7 @@ def hoi_dong_cua_toi(request):
                 D.TenDA       AS tenda,
                 D.LinhVuc     AS linhvuc,
                 D.TrangThai   AS trangthai,
+                D.FileDoAn   AS file_doan,
                 HV.MaHV       AS mahv,
                 HV.HoTen      AS tenhv,
                 TV.VaiTro     AS vai_tro,
@@ -143,7 +144,7 @@ def hoi_dong_cua_toi(request):
         "show_past": show_past,
         "hoidongs": list(groups.values()),
         "tong_hd": len(groups),
-        "tong_dt": len(rows),
+        "tong_dt": len(rows), "MEDIA_URL": settings.MEDIA_URL,
     })
 
 
@@ -629,7 +630,7 @@ def HD_XemTienDo(request, mada):
 
     back_url = reverse("ds_huong_dan")
     return render(request, "hd_tiendo.html", {
-        "doan": doan, "tiendos": tiendos, "back_url": back_url,
+        "doan": doan, "tiendos": tiendos, "back_url": back_url, "MEDIA_URL": settings.MEDIA_URL,
     })
 
 # ---- 2.4 Đánh giá / xác nhận kiểm tra một mốc ----

@@ -47,6 +47,7 @@
                 <th style="width:160px;">Lĩnh vực</th>
                 <th style="width:140px;">Trạng thái</th>
                 <th style="width:160px;">Điểm ĐA</th>
+                <th style="width: 200px;">Báo cáo ĐA</th>
                 <th style="width:180px;" class="text-end">Hành động</th>
               </tr>
             </thead>
@@ -81,6 +82,19 @@
                     <strong class="text-primary">{{ d.diem_hoidong|floatformat:2 }}</strong>
                   {% else %}
                     <span class="text-muted">–</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if d.file_doan %}
+                    <a href="{{ MEDIA_URL }}{{ d.file_doan }}" target="_blank" class="btn btn-sm btn-outline-info">
+                      Xem báo cáo
+                    </a>
+                    <a href="{{ MEDIA_URL }}{{ d.file_doan }}" download class="btn btn-sm btn-outline-secondary ms-1">
+                      Tải
+                    </a>
+                  {% else %}
+                    <span class="text-muted">Chưa có </span>
                   {% endif %}
                 </td>
 
