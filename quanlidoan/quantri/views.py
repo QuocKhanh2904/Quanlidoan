@@ -1,6 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.db.models import Count
+from datetime import date
+from django.shortcuts import get_object_or_404, redirect
 from .models import *
+from django.db.models.functions import ExtractYear
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -57,7 +60,10 @@ def manage_project(request):
     tenda = normalize(request.GET.get('tenda'))
     trangthai = normalize(request.GET.get('trangthai'))
     gvhd = normalize(request.GET.get('magv'))
+    nam = normalize(request.GET.get('nam'))
+
     doans = Doan.objects.all()
+
     if tenda:
         doans = doans.filter(tenda__icontains=tenda)
 
@@ -66,16 +72,31 @@ def manage_project(request):
 
     if gvhd:
         doans = doans.filter(magv__magv=gvhd)
+
+    if nam:
+        doans = doans.filter(ngaykt__year=nam)
+
+    years = (
+        Doan.objects
+        .exclude(ngaykt__isnull=True)
+        .annotate(namkt=ExtractYear('ngaykt'))
+        .values_list('namkt', flat=True)
+        .distinct()
+        .order_by('-namkt')
+    )
+
     gvhds = Doan.objects.values('magv__magv', 'magv__hoten').distinct()
     giangviens = Giangvien.objects.all().distinct()
 
     context = {
         'doans': doans,
         'gvhds': gvhds,
+        'giangviens': giangviens,
         'tenda_selected': tenda,
         'trangthai_selected': trangthai,
         'gvhd_selected': gvhd,
-        'giangviens': giangviens,
+        'nam_selected': nam,
+        'years': years,
     }
     return render(request, 'manage_project.html', context)
 
@@ -200,7 +221,8 @@ def giangvien_delete(request):
 
 def manage_hocvien(request):
     hocviens = Hocvien.objects.all()
-    context = {'hocviens': hocviens}
+    namhocs = Namhoc.objects.all().order_by('-namhoc')
+    context = {'hocviens': hocviens, 'namhocs': namhocs}
     return render(request,'manage_hocvien.html', context)
 
 def hocvien_create(request):
@@ -211,11 +233,12 @@ def hocvien_create(request):
         lop = request.POST.get('lop') or None
         username = request.POST.get('username')
         password = request.POST.get('password')
+        manamhoc = request.POST.get('manamhoc') or None
         if User.objects.filter(username=username).exists():
                 return JsonResponse({'status': 'error', 'message': 'Tên đăng nhập đã tồn tại'})
         user = User.objects.create_user(username=username, password=password)
         try:
-            Hocvien.hocvien_create_raw(hoten=hoten, email=email, sdt=sdt, lop=lop, userid=user.id)
+            Hocvien.hocvien_create_raw(hoten=hoten, email=email, sdt=sdt, lop=lop, manamhoc=manamhoc, userid=user.id)
             return JsonResponse({'status':'success', 'message':'Thêm học viên thành công'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -230,6 +253,7 @@ def hocvien_update(request):
         lop = request.POST.get('lop') or None
         username = request.POST.get('username')
         password = request.POST.get('password')
+        manamhoc = request.POST.get('manamhoc') or None
 
         user = User.objects.filter(id=userid).first()
         try:
@@ -241,7 +265,7 @@ def hocvien_update(request):
                 if password:
                         user.set_password(password)
                 user.save()
-            Hocvien.hocvien_update_raw(mahv=mahv, tenhv=tenhv, email=email, sdt=sdt, lop=lop)
+            Hocvien.hocvien_update_raw(mahv=mahv, tenhv=tenhv, email=email, sdt=sdt, lop=lop, manamhoc=manamhoc)
             return JsonResponse({'status':'success', 'message':'Cập nhật học viên thành công'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -336,7 +360,19 @@ def thanhvienhoidong_delete(request):
         
 def manage_tiendo(request):
     mada = request.GET.get('mada')
-    doans = Doan.objects.all()
+    nam = request.GET.get('nam')
+    years = (
+        Doan.objects
+        .exclude(ngaykt__isnull=True)
+        .annotate(namkt=ExtractYear('ngaykt'))
+        .values_list('namkt', flat=True)
+        .distinct()
+        .order_by('-namkt')
+    )
+    if nam:
+        doans = Doan.objects.filter(ngaykt__year=nam)
+    else:
+        doans = Doan.objects.all()
     so_luong_0_35 = Tiendo.thongke_tiendo(0, 35)
     so_luong_36_70 = Tiendo.thongke_tiendo(36, 70)
     so_luong_71_100 = Tiendo.thongke_tiendo(71, 100)
@@ -344,7 +380,16 @@ def manage_tiendo(request):
         tiendos = Tiendo.objects.filter(mada__mada=mada).select_related('mada').order_by('-ngaycapnhat')
     else:
         tiendos = []
-    context = {'tiendos': tiendos, 'doans': doans, 'mada_selected': int(mada) if mada else '', 'td0_35':so_luong_0_35, 'td36_70':so_luong_36_70, 'td71_100':so_luong_71_100}
+    context = {
+        'tiendos': tiendos,
+        'doans': doans,
+        'years': years,
+        'mada_selected': int(mada) if mada else '',
+        'nam_selected': nam,
+        'td0_35': so_luong_0_35,
+        'td36_70': so_luong_36_70,
+        'td71_100': so_luong_71_100,
+    }
     return render(request, 'manage_tiendo.html', context)
 
 def tiendo_create(request):
@@ -397,7 +442,7 @@ def manage_phancong(request):
     # --- Lấy dữ liệu lọc từ form GET ---
     tenda = normalize(request.GET.get('tenda'))
     linhvuc = normalize(request.GET.get('linhvuc'))
-    hoidongs = Hoidong.objects.all()
+    hoidongs = Hoidong.objects.filter(ngayketthuc__gte=timezone.now())
 
     # --- Gọi stored procedure sp_DanhSachDoAn_TrangThai2 ---
     with connection.cursor() as cursor:
@@ -488,15 +533,46 @@ def phancongdoan_update(request):
 
 
 def manage_dangky(request):
-    mada = request.GET.get('mada')   
-    doans = Doan.objects.all()
+    mada = request.GET.get('mada')
+    nam = request.GET.get('nam')
+    years = Doan.objects.dates('ngaykt', 'year', order='DESC')
+
+    # Lấy năm học hiện tại
+    current_year = date.today().year
+    namhoc_hientai = Namhoc.objects.filter(namhoc=current_year).first()
+
+    if nam:
+        doans = Doan.objects.filter(ngaykt__year=nam)
+    else:
+        doans = Doan.objects.all()
+
     lop_list = Hocvien.objects.values_list('lop', flat=True).distinct()
+
     if mada:
         dangkys = Dangky.objects.filter(mada=mada).select_related('mada').order_by('-ngaydk')
+    elif nam:
+        dangkys = Dangky.objects.filter(mada__ngaykt__year=nam).select_related('mada').order_by('-ngaydk')
     else:
-        dangkys = Dangky.objects.all().order_by('-ngaydk')
-    context = {'dangkys': dangkys, 'doans': doans, 'mada_selected': int(mada) if mada else '', 'lop_list': lop_list,}
+        dangkys = Dangky.objects.all().select_related('mada').order_by('-ngaydk')
+
+    context = {
+        'dangkys': dangkys,
+        'doans': doans,
+        'mada_selected': int(mada) if mada else '',
+        'nam_selected': int(nam) if nam else '',
+        'years': [y.year for y in years],
+        'lop_list': lop_list,
+        'namhoc_hientai': namhoc_hientai,
+    }
     return render(request, 'manage_dangky.html', context)
+
+def update_han_dangky(request):
+    handk = request.POST.get('handk')
+    current_year = date.today().year
+    namhoc = get_object_or_404(Namhoc, namhoc=current_year)
+    namhoc.handk = handk
+    namhoc.save()
+    return redirect('dangky')  # hoặc URL name tương ứng
 
 @require_POST
 def dangky_create(request):
@@ -561,13 +637,26 @@ def hocvien_by_lop(request):
         return JsonResponse({'status': 'error', 'message': str(e)})
     
 def manage_baove(request):
-    mada = request.GET.get('mada')   
-    doans = Doan.objects.all()
-    if mada:
-        bienbans = (Bienban.objects.filter(mada=mada).select_related('ketquabaove').order_by('-ngaybaove'))
+    mada = request.GET.get('mada')
+    nam = request.GET.get('nam')
+    years = Doan.objects.dates('ngaykt', 'year', order='DESC')
+    if nam:
+        doans = Doan.objects.filter(ngaykt__year=nam)
     else:
-        bienbans = (Bienban.objects.all().select_related('ketquabaove').order_by('-ngaybaove'))
-    context = {'bienbans': bienbans, 'doans': doans, 'mada_selected': int(mada) if mada else ''}
+        doans = Doan.objects.all()
+    if mada:
+        bienbans = Bienban.objects.filter(mada=mada).select_related('ketquabaove').order_by('-ngaybaove')
+    elif nam:
+        bienbans = Bienban.objects.filter(mada__ngaykt__year=nam).select_related('ketquabaove').order_by('-ngaybaove')
+    else:
+        bienbans = Bienban.objects.all().select_related('ketquabaove').order_by('-ngaybaove')
+    context = {
+        'bienbans': bienbans,
+        'doans': doans,
+        'mada_selected': int(mada) if mada else '',
+        'nam_selected': int(nam) if nam else '',
+        'years': [y.year for y in years],
+    }
     return render(request, 'manage_baove.html', context)
 
 def baove_create(request):

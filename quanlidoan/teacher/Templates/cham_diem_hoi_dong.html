@@ -58,19 +58,20 @@
           <td class="text-center">
             {% if is_secretary %}
               <input type="number"
-                     name="diem_{{ tv.MaTV }}"
-                     value="{{ tv.Diem|default_if_none:'' }}"
-                     min="0" max="10" step="0.1"
-                     class="form-control text-center"
-                     style="width:100px; margin:auto;">
+                    name="diem_{{ tv.MaTV }}"
+                    value="{{ tv.Diem|default_if_none:'' }}"
+                    min="0" max="10" step="0.1"
+                    class="form-control text-center"
+                    style="width:100px; margin:auto;">
             {% else %}
               <input type="number"
-                     value="{{ tv.Diem|default_if_none:'' }}"
-                     readonly
-                     class="form-control text-center bg-light"
-                     style="width:100px; margin:auto;">
+                    value="{{ tv.Diem|default_if_none:'' }}"
+                    readonly
+                    class="form-control text-center bg-light"
+                    style="width:100px; margin:auto;">
             {% endif %}
           </td>
+
         </tr>
         {% endfor %}
       </tbody>

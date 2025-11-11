@@ -19,6 +19,7 @@
           <th>Email</th>
           <th>Số điện thoại</th>
           <th>Lớp</th>
+          <th>Năm bảo vệ</th>
           <th class="text-end">Hành động</th>
         </tr>
       </thead>
@@ -30,6 +31,7 @@
           <td class="fw-semibold">{{ hv.email|default:"-" }}</td>
           <td>{{ hv.sodienthoai|default:"-" }}</td>
           <td>{{ hv.lop|default:"-" }}</td>
+          <td>{{ hv.manamhoc.namhoc|default:"-" }}</td>
           <td class="text-end">
             <div class="btn-group">
               <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
@@ -39,6 +41,7 @@
                 data-sodienthoai="{{ hv.sodienthoai|default_if_none:''|escapejs }}"
                 data-userid="{{ hv.user.id|default_if_none:''|escapejs }}"
                 data-lop="{{ hv.lop|default_if_none:''|escapejs }}"
+                data-namhoc="{{ hv.manamhoc.manamhoc|default_if_none:''|escapejs }}"
                 data-username="{{ hv.user.username|default_if_none:''|escapejs }}">Sửa</button>
 
               <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
@@ -87,6 +90,15 @@
           <div class="col-md-6">
             <label class="form-label">Lớp<span class="text-danger">*</span></label>
             <input type="text" class="form-control" name="lop" id="f_lop" placeholder="VD: D20CN1" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Năm bảo vệ<span class="text-danger">*</span></label>
+            <select name="manamhoc" class="form-select" id="f_namhoc">
+              <option value="" disabled selected>Chọn năm bảo vệ</option>
+              {% for nh in namhocs %}
+              <option value="{{ nh.manamhoc }}">{{ nh.namhoc }}</option>
+              {% endfor %}
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="username">Tên người dùng <span class="text-danger">*</span></label>

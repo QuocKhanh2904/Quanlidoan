@@ -123,4 +123,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const form1 = document.getElementById("filterForm");
+    const selects = form1.querySelectorAll("select");
+
+    // Tự động submit khi thay đổi năm hoặc đồ án
+    selects.forEach(select => {
+        select.addEventListener("change", function () {
+            form1.submit();
+        });
+    });
 });

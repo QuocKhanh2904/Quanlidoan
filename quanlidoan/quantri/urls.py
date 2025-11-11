@@ -26,6 +26,7 @@ urlpatterns = [
     path("dangky/by_doan/", views.dangky_by_doan, name="dangky_by_doan"),
     path("baove/detail/<int:mabb>/", views.baove_detail, name="baove_detail"),
 
+    path('update-han-dangky/', views.update_han_dangky, name='update_han_dangky'),
     path("dangky/create/", views.dangky_create, name="dangky_create"),
     path("dangky/detail/<int:madk>/", views.dangky_detail, name="dangky_detail"),
     path("dangky/delete/", views.dangky_delete, name="dangky_delete"),

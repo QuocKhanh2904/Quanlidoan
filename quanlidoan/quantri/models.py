@@ -283,26 +283,29 @@ class Hocvien(models.Model):
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
     lop = models.CharField(db_column='Lop', max_length=50, blank=True, null=True)
+    manamhoc = models.ForeignKey('NamHoc', models.DO_NOTHING, db_column='MaNamHoc', blank=True, null=True)
 
-    def hocvien_create_raw(hoten, userid, email=None, sdt=None, lop=None):
+    def hocvien_create_raw(hoten, userid, manamhoc, email=None, sdt=None, lop=None):
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO HOCVIEN (hoten, email, sodienthoai, lop, userid) VALUES (%s, %s, %s, %s, %s)",
+            cursor.execute("INSERT INTO HOCVIEN (hoten, email, sodienthoai, lop, manamhoc, userid) VALUES (%s, %s, %s, %s, %s, %s)",
                 [   hoten,
                     email or None,
                     sdt or None,
                     lop or None,
+                    manamhoc ,
                     userid   ])
             cursor.execute("SELECT SCOPE_IDENTITY()")
             new_id = cursor.fetchone()[0]
             return new_id
     
-    def hocvien_update_raw(mahv, tenhv, email=None, sdt=None, lop=None):
+    def hocvien_update_raw(mahv, tenhv, email=None, sdt=None, lop=None, manamhoc=None):
         with connection.cursor() as cursor:
-            cursor.execute(""" UPDATE HOCVIEN SET hoten=%s, email=%s, sodienthoai=%s, lop=%s WHERE mahv=%s""",
+            cursor.execute(""" UPDATE HOCVIEN SET hoten=%s, email=%s, sodienthoai=%s, lop=%s, manamhoc=%s WHERE mahv=%s""",
                 [   tenhv,
                     email or None,
                     sdt or None,
                     lop or None,
+                    manamhoc or None,
                     int(mahv)   ])
             return mahv
     
@@ -506,3 +509,12 @@ class Tiendo(models.Model):
     class Meta:
         managed = False
         db_table = 'TIENDO'
+
+class Namhoc(models.Model):
+    manamhoc = models.AutoField(db_column='MaNamHoc', primary_key=True)
+    namhoc = models.IntegerField(db_column='NamHoc', blank=True, null=True)
+    handk = models.DateField(db_column='HanDangKy', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'NAMHOC'

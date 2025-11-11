@@ -40,7 +40,15 @@
     </div>
   </form>
 
-
+  {% if han_dangky %}
+  <div class="alert {% if het_han %}alert-danger{% else %}alert-info{% endif %} text-center" role="alert">
+    {% if het_han %}
+    ⚠️ Hạn đăng ký đã hết vào ngày {{ han_dangky|date:"d/m/Y" }}.
+    {% else %}
+    🕒 Hạn cuối để đăng ký: {{ han_dangky|date:"d/m/Y" }}.
+    {% endif %}
+  </div>
+  {% endif %}
   <!-- Table -->
   <div class="table-responsive">
     <table class="table table-bordered table-hover align-middle text-center shadow-sm">
@@ -69,7 +77,9 @@
             </button>
           </td>
           <td>
-            {% if not dangky and topic.soluongconlai > 0 %}
+            {% if het_han %}
+            <button class="btn btn-secondary btn-sm" disabled>Hết hạn đăng ký</button>
+            {% elif not dangky and topic.soluongconlai > 0 %}
             <!-- Nếu chưa đăng ký -->
             <a href="{% url 'register_topic' %}?topic_id={{ topic.mada }}">
               <button class="btn btn-success btn-sm">
@@ -78,7 +88,6 @@
             </a>
             {% elif not dangky and topic.soluongconlai == 0 %}
             <button class="btn btn-secondary btn-sm" disabled>Đã đủ số lượng</button>
-
             {% elif dangky.mada.mada == topic.mada and dangky.trangthai == '0' %}
             <a href="{% url 'cancel_register' dangky.mada.mada %}"
               onclick="return confirm('Bạn có chắc muốn hủy đăng ký đề tài này?');">
@@ -87,11 +96,9 @@
               </button>
             </a>
             {% else %}
-            <!-- Nếu đã đăng ký đề tài khác hoặc đã duyệt -->
             <button class="btn btn-secondary btn-sm" disabled>Đã đăng ký</button>
             {% endif %}
           </td>
-
         </tr>
         {% endfor %}
       </tbody>

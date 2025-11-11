@@ -87,16 +87,15 @@ class Doan(models.Model):
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
 
-    def doan_list(mada=None, tenda=None, linhvuc=None):
+    def doan_list(mada=None, namhoc=None, tenda=None, linhvuc=None):
         with connection.cursor() as cursor:
-            cursor.execute("EXEC sp_GetDoAn_Available @MaDA = %s, @TenDA = %s, @LinhVuc = %s", [mada or None, tenda or None, linhvuc or None])
+            cursor.execute("EXEC sp_GetDoAn_Available @MaDA = %s, @NamHoc = %s, @TenDA = %s, @LinhVuc = %s", [mada or None, namhoc or None, tenda or None, linhvuc or None])
             rows = dictfetchall(cursor)
         return rows
 
     class Meta:
         managed = False
         db_table = 'DOAN'
-
 
 class Giangvien(models.Model):
     magv = models.AutoField(db_column='MaGV', primary_key=True)  # AUTO
@@ -119,6 +118,7 @@ class Hocvien(models.Model):
     soluothuy = models.IntegerField(db_column='soluothuy', blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
     lop = models.CharField(db_column='Lop', max_length=50, blank=True, null=True)
+    manamhoc = models.ForeignKey('Namhoc', models.DO_NOTHING, db_column='MaNamHoc', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -210,3 +210,12 @@ class Tiendo(models.Model):
     class Meta:
         managed = False
         db_table = 'TIENDO'
+
+class Namhoc(models.Model):
+    manamhoc = models.AutoField(db_column='MaNamHoc', primary_key=True)
+    namhoc = models.IntegerField(db_column='NamHoc', blank=True, null=True)
+    handk = models.DateField(db_column='HanDangKy', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'NAMHOC'

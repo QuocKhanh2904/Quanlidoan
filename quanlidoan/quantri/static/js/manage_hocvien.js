@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('f_lop').value = btn.dataset.lop || '';
     document.getElementById('f_username').value = btn.dataset.username || '';
     document.getElementById('f_userid').value = btn.dataset.userid || '';
+    document.getElementById('f_namhoc').value = btn.dataset.namhoc || '';
   });
 
   // Submit (AJAX)

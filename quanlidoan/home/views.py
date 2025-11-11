@@ -1,5 +1,6 @@
 from django.utils import timezone
 import json
+from datetime import date
 from django.shortcuts import render, redirect
 from django.http import  JsonResponse
 from .models import *
@@ -38,20 +39,28 @@ def change_password(request):
         return JsonResponse({'status':'success', 'message':'Mật khẩu đã được thay đổi thành công'})
 
 def topic(request):
-    dangky = Dangky.objects.filter(mahv=request.user.hocvien).first()
+    hocvien = request.user.hocvien
+    dangky = Dangky.objects.filter(mahv=hocvien).first()
+    namhoc = hocvien.manamhoc 
 
     tenda = request.GET.get('tenda', '').strip()
     linhvuc = request.GET.get('linhvuc', '').strip()
-    doans = Doan.objects.all()
-    topics = Doan.doan_list(mada=None, tenda=tenda, linhvuc=linhvuc)
-    fields = doans.values_list('linhvuc', flat=True).distinct()
+
+    topics = Doan.doan_list(mada=None, namhoc=namhoc.namhoc, tenda=tenda, linhvuc=linhvuc)
+    fields = Doan.objects.values_list('linhvuc', flat=True).distinct()
+
+    today = date.today()
+    han_dangky = namhoc.handk
+    het_han = han_dangky and today > han_dangky 
+
     context = {
         'topics': topics,
         'fields': fields,
         'dangky': dangky,
+        'het_han': het_han,
+        'han_dangky': han_dangky,
     }
     return render(request, 'app/topic.html', context)
-
 
 def register_topic(request):
     topic_id = request.GET.get('topic_id')
@@ -92,7 +101,7 @@ def cancel_register(request, mada):
 def report_progress(request):
     doans = Dangky.dangky_list(mahv=request.user.hocvien.mahv)
     doan = doans[0] if doans else None
-    dangky = Dangky.objects.get(mahv=request.user.hocvien)
+    dangky = Dangky.objects.filter(mahv=request.user.hocvien).first()
     tiendos = Tiendo.objects.filter(mada=doan['mada']).order_by('-ngaycapnhat') if doan else []
     context = {'doan': doan, 'tiendos': tiendos, 'dangky': dangky}
     return render(request, 'app/report_progress.html', context)
@@ -114,9 +123,8 @@ def submit_report(request):
             return JsonResponse({"status": "error", "message": "Bạn chưa đăng ký đề tài nào."})
 
 def submit_topic(request):
-    doans = Dangky.dangky_list(mahv=request.user.hocvien.mahv)
-    doan = doans[0] if doans else None
-    tiendo = Tiendo.objects.filter(mada=doan['mada']).order_by('ngaycapnhat').last() if doan else None
+    doan = Dangky.objects.filter(mahv=request.user.hocvien).first()
+    tiendo = Tiendo.objects.filter(mada=doan.mada).order_by('ngaycapnhat').last() if doan else None
     context = {'doan': doan, 'tiendo': tiendo}
     return render(request, 'app/submit_topic.html', context)
 

@@ -29,6 +29,13 @@ def dictfetchall(cursor):
     cols = [c[0] for c in cursor.description]
     return [dict(zip(cols, row)) for row in cursor.fetchall()]
 
+def dictfetchone(cursor):
+    row = cursor.fetchone()
+    if not row:
+        return None
+    columns = [col[0] for col in cursor.description]
+    return dict(zip(columns, row))
+
 def _parse_date(s):
     try:
         return datetime.strptime(s, "%Y-%m-%d").date() if s else None
@@ -77,31 +84,23 @@ def hoi_dong_cua_toi(request):
                 D.TenDA       AS tenda,
                 D.LinhVuc     AS linhvuc,
                 D.TrangThai   AS trangthai,
-                D.FileDoAn   AS file_doan,
+                D.FileDoAn    AS file_doan,
                 HV.MaHV       AS mahv,
                 HV.HoTen      AS tenhv,
                 TV.VaiTro     AS vai_tro,
 
-                -- ✅ Điểm trung bình hội đồng (lấy từ KETQUABAOVE đã được trigger tính)
+                -- ✅ Lấy điểm hội đồng từ KETQUABAOVE theo học viên
                 (
                     SELECT TOP 1 KQ.Diem
                     FROM KETQUABAOVE KQ
-                    JOIN BIENBAN BBX ON KQ.MaBB = BBX.MaBB
-                    WHERE BBX.MaDA = D.MaDA
+                    JOIN BIENBAN BBX ON BBX.MaBB = KQ.MaBB
+                    WHERE BBX.MaDA = D.MaDA AND BBX.MaHV = HV.MaHV
                     ORDER BY BBX.NgayBaoVe DESC, BBX.MaBB DESC
                 ) AS diem_hoidong,
 
-                -- ✅ Có biên bản hay chưa
-                CASE WHEN EXISTS(SELECT 1 FROM BIENBAN BBX WHERE BBX.MaDA = D.MaDA)
-                     THEN 1 ELSE 0 END AS has_bienban,
-
-                -- ✅ Đã chấm đủ hay chưa (kiểm tra trigger đã tạo bản ghi)
-                CASE WHEN EXISTS(
-                    SELECT 1 FROM KETQUABAOVE KQ
-                    JOIN BIENBAN BBX ON KQ.MaBB = BBX.MaBB
-                    WHERE BBX.MaDA = D.MaDA
-                )
-                THEN 1 ELSE 0 END AS da_nhap_diem
+                -- ✅ Kiểm tra có biên bản chưa
+                CASE WHEN EXISTS(SELECT 1 FROM BIENBAN BBX WHERE BBX.MaDA = D.MaDA AND BBX.MaHV = HV.MaHV)
+                    THEN 1 ELSE 0 END AS has_bienban
 
             FROM THANHVIENHOIDONG TV
             JOIN HOIDONG HD ON HD.MaHD = TV.MaHD
@@ -192,17 +191,9 @@ def DanhSachDoAn(request):
             D.DiemHuongDan        AS diem_hd,
             D.NgayChamHuongDan    AS ngaycham,
 
-            HV.HoTen AS tenhv,
-
             ISNULL(Tlatest.TienDoPhanTram,0) AS tiendo,
             Tlatest.NgayCapNhat               AS ngaytiendo
-        FROM  DOAN D 
-        LEFT JOIN (
-            SELECT DK.MaDA, HV.HoTen
-            FROM DANGKY DK
-            JOIN HOCVIEN HV ON HV.MaHV = DK.MaHV
-            WHERE DK.TrangThai = 1
-        ) AS HV ON HV.MaDA = D.MaDA
+        FROM DOAN D
         OUTER APPLY (
             SELECT TOP 1 T.TienDoPhanTram, T.NgayCapNhat
             FROM TIENDO T
@@ -555,16 +546,9 @@ def DanhSachHuongDan(request):
                 D.DiemHuongDan AS diem_hd,
                 D.NhanXetHuongDan AS nhanxet_hd,
                 D.NgayChamHuongDan AS ngaycham_hd,
-                HV.HoTen AS tenhv,
                 ISNULL(Tlatest.TienDoPhanTram,0) AS tiendo,
                 Tlatest.NgayCapNhat AS ngaytiendo
             FROM DOAN D
-            LEFT JOIN (
-                SELECT DK.MaDA, HV.HoTen
-                FROM DANGKY DK 
-                JOIN HOCVIEN HV ON HV.MaHV = DK.MaHV
-                WHERE DK.TrangThai = 1
-            ) AS HV ON HV.MaDA = D.MaDA
             OUTER APPLY (
                 SELECT TOP 1 T.TienDoPhanTram, T.NgayCapNhat
                 FROM TIENDO T
@@ -979,12 +963,13 @@ def ChamDiemHuongDan(request, mada):
 
 
 @login_required
-def ChamDiemHoiDong(request, mada):
+def ChamDiemHoiDong(request, mada, mahv):
+    """Chấm điểm hội đồng cho 1 học viên — mỗi học viên có biên bản riêng."""
     magv = _get_magv(request.user)
     if not magv:
         return HttpResponseForbidden("Tài khoản chưa liên kết mã giảng viên.")
 
-    # ✅ Kiểm tra giảng viên có trong hội đồng đồ án không
+    # 🧩 Kiểm tra giảng viên thuộc hội đồng
     with connection.cursor() as c:
         c.execute("""
             SELECT TV.MaTV, TV.VaiTro
@@ -994,30 +979,28 @@ def ChamDiemHoiDong(request, mada):
             WHERE D.MaDA = %s AND TV.MaGV = %s
         """, [mada, magv])
         row = c.fetchone()
-
     if not row:
         return HttpResponseForbidden("Bạn không thuộc hội đồng của đồ án này.")
 
     ma_tv, vai_tro = row
     is_secretary = (vai_tro == "Thư ký")
 
-    # ✅ Kiểm tra có biên bản bảo vệ chưa
+    # ✅ Lấy biên bản theo MaDA + MaHV
     with connection.cursor() as c:
         c.execute("""
             SELECT TOP 1 MaBB, NgayBaoVe
             FROM BIENBAN
-            WHERE MaDA = %s
+            WHERE MaDA = %s AND MaHV = %s
             ORDER BY NgayBaoVe DESC, MaBB DESC
-        """, [mada])
+        """, [mada, mahv])
         row = c.fetchone()
-
     if not row:
-        messages.warning(request, "Chưa có biên bản bảo vệ cho đồ án này.")
+        messages.warning(request, "⚠️ Học viên này chưa có biên bản bảo vệ.")
         return redirect("hoi_dong_cua_toi")
 
     ma_bb, ngaybaove = row
 
-    # ✅ Lấy điểm hướng dẫn và phản biện trực tiếp từ DOAN
+    # ✅ Lấy điểm hướng dẫn & phản biện (từ DOAN)
     with connection.cursor() as c:
         c.execute("""
             SELECT DiemHuongDan, DiemPhanBien
@@ -1025,36 +1008,54 @@ def ChamDiemHoiDong(request, mada):
             WHERE MaDA = %s
         """, [mada])
         row = c.fetchone()
-    diem_huongdan, diem_phanbien = (row if row else (None, None))
+    diem_huongdan, diem_phanbien = row if row else (None, None)
 
-    # ✅ Lấy danh sách thành viên hội đồng + điểm từng người
+    # ✅ Thông tin học viên
+    with connection.cursor() as c:
+        c.execute("SELECT HoTen FROM HOCVIEN WHERE MaHV = %s", [mahv])
+        hv = dictfetchone(c)
+
+    # ✅ Danh sách thành viên hội đồng
     with connection.cursor() as c:
         c.execute("""
-            SELECT TV.MaTV, GV.HoTen, TV.VaiTro, DT.Diem
+            SELECT TV.MaTV, GV.HoTen, TV.VaiTro
             FROM THANHVIENHOIDONG TV
             JOIN GIANGVIEN GV ON GV.MaGV = TV.MaGV
             JOIN HOIDONG HD ON HD.MaHD = TV.MaHD
             JOIN DOAN D ON D.MaHD = HD.MaHD
-            LEFT JOIN DIEMTHANHVIEN DT ON DT.MaTV = TV.MaTV AND DT.MaBB = %s
             WHERE D.MaDA = %s
-            ORDER BY 
-                CASE TV.VaiTro
-                    WHEN N'Chủ tịch' THEN 1
-                    WHEN N'Thư ký' THEN 2
-                    ELSE 3
-                END
-        """, [ma_bb, mada])
+            ORDER BY CASE
+                        WHEN TV.VaiTro = N'Chủ tịch' THEN 1
+                        WHEN TV.VaiTro = N'Thư ký' THEN 2
+                        ELSE 3
+                     END
+        """, [mada])
         thanhviens = dictfetchall(c)
 
-    # ✅ Nếu POST → lưu điểm hội đồng
+
+
+
+    # ✅ Lấy điểm hội đồng hiện có cho học viên này (theo biên bản riêng)
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT MaTV, Diem
+            FROM DIEMTHANHVIEN
+            WHERE MaBB = %s
+        """, [ma_bb])
+        diem_dict = {r["MaTV"]: r["Diem"] for r in dictfetchall(c)}
+
+    # Gắn điểm đã chấm vào từng thành viên (nếu có)
+    for tv in thanhviens:
+        tv["Diem"] = diem_dict.get(tv["MaTV"])
+
+    # ✅ Lưu điểm (chỉ Thư ký)
     if request.method == "POST":
         if not is_secretary:
-            return HttpResponseForbidden("Chỉ thư ký được phép nhập điểm hội đồng.")
+            return HttpResponseForbidden("❌ Chỉ thư ký được phép nhập điểm hội đồng.")
 
         with connection.cursor() as c:
             for tv in thanhviens:
-                field = f"diem_{tv['MaTV']}"
-                val = request.POST.get(field)
+                val = request.POST.get(f"diem_{tv['MaTV']}")
                 if not val:
                     continue
                 try:
@@ -1065,26 +1066,27 @@ def ChamDiemHoiDong(request, mada):
                     continue
 
                 c.execute("""
-                    IF EXISTS (SELECT 1 FROM DIEMTHANHVIEN WHERE MaTV=%s AND MaBB=%s)
-                        UPDATE DIEMTHANHVIEN SET Diem=%s WHERE MaTV=%s AND MaBB=%s;
+                    IF EXISTS (SELECT 1 FROM DIEMTHANHVIEN WHERE MaBB=%s AND MaTV=%s)
+                        UPDATE DIEMTHANHVIEN SET Diem=%s WHERE MaBB=%s AND MaTV=%s;
                     ELSE
-                        INSERT INTO DIEMTHANHVIEN (MaTV, MaBB, Diem)
+                        INSERT INTO DIEMTHANHVIEN (MaBB, MaTV, Diem)
                         VALUES (%s, %s, %s);
-                """, [tv["MaTV"], ma_bb, diem, tv["MaTV"], ma_bb, tv["MaTV"], ma_bb, diem])
+                """, [ma_bb, tv["MaTV"], diem, ma_bb, tv["MaTV"], ma_bb, tv["MaTV"], diem])
 
-        messages.success(request, "✅ Đã lưu điểm hội đồng thành công.")
+        messages.success(request, f"✅ Đã lưu điểm hội đồng cho học viên {hv['HoTen']}.")
         return redirect("hoi_dong_cua_toi")
 
-    # ✅ Trả dữ liệu ra template
+    # ✅ Render
     return render(request, "cham_diem_hoi_dong.html", {
-        "thanhviens": thanhviens,
+        "hv": hv,
         "mada": mada,
         "ngaybaove": ngaybaove,
         "is_secretary": is_secretary,
+        "thanhviens": thanhviens,
+        "diem_dict": diem_dict,
         "diem_huongdan": diem_huongdan,
         "diem_phanbien": diem_phanbien,
     })
-
 
 @login_required
 def DanhSachPhanBien(request):
@@ -1110,7 +1112,6 @@ def DanhSachPhanBien(request):
                 D.TenDA, 
                 D.LinhVuc, 
                 D.TrangThai,
-                HV.HoTen AS TenHV,
                 HD.TenHD, 
                 HD.MaHD,
                 BB.MaBB, 
@@ -1123,12 +1124,6 @@ def DanhSachPhanBien(request):
                 D.DiemPhanBien         -- ✅ Lấy điểm phản biện
             FROM HUONGDANDOAN HDD
             JOIN DOAN D ON D.MaDA = HDD.MaDA
-            LEFT JOIN (
-                SELECT DK.MaDA, HV.HoTen
-                FROM DANGKY DK
-                JOIN HOCVIEN HV ON HV.MaHV = DK.MaHV
-                WHERE DK.TrangThai = 1
-            ) AS HV ON HV.MaDA = D.MaDA
             LEFT JOIN HOIDONG HD ON D.MaHD = HD.MaHD
             OUTER APPLY (
                 SELECT TOP 1 MaBB, NgayBaoVe

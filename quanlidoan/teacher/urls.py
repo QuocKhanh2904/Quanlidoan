@@ -17,7 +17,7 @@ urlpatterns = [
 
     # === Hội đồng của tôi ===
     path("hoi-dong-cua-toi/", views.hoi_dong_cua_toi, name="hoi_dong_cua_toi"),
-    path("hoi-dong/<int:mada>/cham-diem/", views.ChamDiemHoiDong, name="cham_diem_hoi_dong"),
+    path("hoi-dong/<int:mada>/cham-diem/<int:mahv>/", views.ChamDiemHoiDong, name="cham_diem_hoi_dong"),
 
 
 

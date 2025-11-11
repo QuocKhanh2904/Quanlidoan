@@ -84,6 +84,7 @@ class Hocvien(models.Model):
     email = models.CharField(db_column='Email', max_length=100, blank=True, null=True)
     sodienthoai = models.CharField(db_column='SoDienThoai', max_length=20, blank=True, null=True)
     lop = models.CharField(db_column='Lop', max_length=50, blank=True, null=True)
+    manamhoc = models.ForeignKey('NamHoc', models.DO_NOTHING, db_column='MaNamHoc', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -148,3 +149,12 @@ class Tiendo(models.Model):
     class Meta:
         managed = False
         db_table = 'TIENDO'
+
+class Namhoc(models.Model):
+    manamhoc = models.AutoField(db_column='MaNamHoc', primary_key=True)
+    namhoc = models.IntegerField(db_column='NamHoc', blank=True, null=True)
+    handk = models.DateField(db_column='HanDangKy', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'NAMHOC'

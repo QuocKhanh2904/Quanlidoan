@@ -31,12 +31,11 @@
         <tr>
           <th style="width:90px;">Mã</th>
           <th style="width:220px;">Đề tài</th>
-          <th style="width:200px;">Sinh viên</th>
           <th style="width:100px;">Trạng thái</th>
           <th style="width:100px;">Tiến độ</th>
           <th style="width:80px;">Điểm HD</th>
           <th style="width:120px;">Ngày cập nhật</th>
-          <th style="width:220px;">Thao tác</th>
+          <th style="width:180px;">Thao tác</th>
         </tr>
       </thead>
       <tbody>
@@ -44,7 +43,6 @@
         <tr>
           <td>{{ p.mada }}</td>
           <td class="fw-semibold">{{ p.tenda }}</td>
-          <td>{{ p.tenhv|default:"(chưa xác định)" }}</td>
           <td>
             {% with st=p.trangthai|stringformat:"s" %}
               {% if st == "0" %}<span class="badge bg-secondary-subtle text-secondary">Chưa duyệt</span>
@@ -66,7 +64,7 @@
             {% endif %}
           </td>
           <td>{{ p.ngaytiendo|date:"Y-m-d"|default:"-" }}</td>
-          <td class="text-end">
+          <td>
             <div class="d-flex justify-content-end align-items-center gap-2">
               <a class="btn btn-sm btn-outline-secondary"
                 href="{% url 'hd_xem_tiendo' p.mada %}?back={{ request.get_full_path|urlencode }}">

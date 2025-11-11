@@ -15,19 +15,36 @@
     <div class="card mb-3">
         <div class="card-body">
             <form class="row g-3" id="filterForm" method="get">
-                <div class="col-md-4">
-                    <label class="form-label">Đồ án</label>
-                    <select class="form-select" name="mada">
+                <!-- Lọc theo năm kết thúc -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Năm học</label>
+                    <select class="form-select" name="nam" onchange="this.form.submit()">
                         <option value="">-- Tất cả --</option>
-                        {% for da in doans %}
-                        {% if mada_selected == da.mada %}<option value="{{ da.mada }}" selected>{{ da.tenda }}</option>
-                        {% else %} <option value="{{ da.mada }}">{{ da.tenda }}</option>{% endif %}
+                        {% for year in years %}
+                        <option value="{{ year }}" {% if nam_selected|stringformat:"s" == year|stringformat:"s"%} selected {% endif %}>
+                            {{ year }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4 align-self-end">
-                    <button type="submit" class="btn btn-secondary">Lọc</button>
+
+                <!-- Lọc theo đồ án -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Đồ án</label>
+                    <select class="form-select" name="mada">
+                        <option value="">-- Tất cả --</option>
+                        {% for da in doans %}
+                        {% if mada_selected == da.mada %}
+                        <option value="{{ da.mada }}" selected>{{ da.tenda }}</option>
+                        {% else %}
+                        <option value="{{ da.mada }}">{{ da.tenda }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" class="btn btn-secondary w-100">Lọc</button>
                 </div>
             </form>
         </div>
@@ -50,6 +67,7 @@
                             <th>#</th>
                             <th>Học viên</th>
                             <th>Đồ án</th>
+                            <th>GVHD</th>
                             <th>Ngày bảo vệ</th>
                             <th>Địa điểm</th>
                             <th>Điểm TB</th>
@@ -63,6 +81,7 @@
                             <td>{{ forloop.counter }}</td>
                             <td>{{ bb.mahv.hoten }}</td>
                             <td>{{ bb.mada.tenda }}</td>
+                            <td>{{ bb.mada.magv.hoten }}</td>
                             <td>{{ bb.ngaybaove|date:"d/m/Y" }}</td>
                             <td>{{ bb.diadiem }}</td>
                             <td>{{ bb.ketquabaove.diem|floatformat:2|default:"-" }}</td>

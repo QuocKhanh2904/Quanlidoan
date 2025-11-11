@@ -135,8 +135,16 @@
           <td class="text-nowrap">
             <a href="{% url 'chi_tiet_do_an' doan.mada %}" class="btn btn-sm btn-outline-secondary"
               title="Xem chi tiết">👁</a>
+
             <a href="{% url 'sua_do_an' doan.mada %}" class="btn btn-sm btn-outline-primary" title="Sửa">✏️</a>
-            <a href="{% url 'xoa_do_an' doan.mada %}" class="btn btn-sm btn-outline-danger" title="Xóa">🗑️</a>
+
+            {% if doan.trangthai|stringformat:"s" == "0" %}
+              <!-- Chỉ hiển thị nút XÓA khi trạng thái = 0 (chưa duyệt) -->
+              <a href="{% url 'xoa_do_an' doan.mada %}" class="btn btn-sm btn-outline-danger" title="Xóa">🗑️</a>
+            {% else %}
+              <!-- Hiển thị nút mờ không click được -->
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Không thể xóa đồ án đã duyệt">🚫</button>
+            {% endif %}
           </td>
         </tr>
         {% empty %}
