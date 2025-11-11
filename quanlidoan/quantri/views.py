@@ -17,6 +17,12 @@ import json
 def home(request):
     if not request.user.is_staff and not request.user.is_superuser:
         return HttpResponseForbidden("Bạn không có quyền truy cập vào trang của admin.")
+    #-- TỰ ĐỘNG THÊM NĂM HỌC MỚI ---
+    nam_hien_tai = date.today().year
+    han_dang_ky = date(nam_hien_tai, 5, 5)
+    # Kiểm tra xem năm học này đã tồn tại chưa
+    if not Namhoc.objects.filter(namhoc=nam_hien_tai).exists():
+        Namhoc.objects.create(namhoc=nam_hien_tai,handangky=han_dang_ky)
      # Thống kê đồ án theo trạng thái
     da_trangthai = Doan.objects.values('trangthai').annotate(total=Count('mada'))
 
@@ -129,8 +135,9 @@ def doan_update(request):
         linhvuc = request.POST.get('linhvuc')
         mota = request.POST.get('mota') or None
         file = request.FILES.get('file') or None
+        lydo = request.POST.get('lydo') or None
         try:
-            Doan.doan_update_raw(mada=mada, tenda=tenda, trangthai=trangthai, soluongtoida=soluongtoida, ngaybd=ngaybd, ngaykt=ngaykt, linhvuc=linhvuc, mota=mota, file=file)
+            Doan.doan_update_raw(mada=mada, tenda=tenda, trangthai=trangthai, soluongtoida=soluongtoida, ngaybd=ngaybd, ngaykt=ngaykt, linhvuc=linhvuc, mota=mota, file=file, lydo=lydo)
             return JsonResponse({'status': 'success', 'message': 'Cập nhật đồ án thành công'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})

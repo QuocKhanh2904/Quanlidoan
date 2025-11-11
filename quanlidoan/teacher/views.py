@@ -187,6 +187,7 @@ def DanhSachDoAn(request):
             D.TrangThai AS trangthai,
             D.MoTa AS mota,
             D.NgayGui AS ngaygui,
+            D.LyDo AS lydo,
 
             D.DiemHuongDan        AS diem_hd,
             D.NgayChamHuongDan    AS ngaycham,

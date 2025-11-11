@@ -103,6 +103,7 @@
           <th>Mô tả</th>
           <th>Ngày gửi</th>
           <th></th>
+          <th>Lý do</th>
         </tr>
       </thead>
       <tbody>
@@ -112,7 +113,9 @@
           <td>{{ doan.tenda }}</td>
           <td>{{ doan.linhvuc|default:"-" }}</td>
           <td>
-            {% if doan.trangthai|stringformat:"s" == "0" %}
+            {% if doan.trangthai|stringformat:"s" == "-1" %}
+            <span class="status rejected">Từ chối</span>
+            {% elif doan.trangthai|stringformat:"s" == "0" %}
             <span class="status pending">Chưa duyệt</span>
             {% elif doan.trangthai|stringformat:"s" == "1" %}
             <span class="status approved">Đã duyệt</span>
@@ -146,6 +149,15 @@
               <button class="btn btn-sm btn-outline-secondary" disabled title="Không thể xóa đồ án đã duyệt">🚫</button>
             {% endif %}
           </td>
+          <td>{% if doan.trangthai|stringformat:"s" == "-1" %}
+            <button class="btn btn-sm btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#lydoModal"
+                    data-lydo="{{ doan.lydo|default:'Không có lý do'|escapejs }}">
+              ❗ Xem lý do
+            </button>
+          {% endif %}
+          </td>
         </tr>
         {% empty %}
         <tr>
@@ -156,4 +168,34 @@
     </table>
   </div>
 </div>
+
+<!-- Modal xem lý do -->
+<div class="modal fade" id="lydoModal" tabindex="-1" aria-labelledby="lydoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="lydoModalLabel">Lý do từ chối đồ án</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <p id="lydoText" class="mb-0"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const lydoModal = document.getElementById('lydoModal');
+    lydoModal.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const lydo = button.getAttribute('data-lydo') || 'Không có lý do';
+      document.getElementById('lydoText').textContent = lydo;
+    });
+  });
+</script>
+
 {% endblock %}

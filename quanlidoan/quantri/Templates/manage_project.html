@@ -77,7 +77,9 @@
           <td>{{ da.mada }}</td>
           <td class="fw-semibold">{{ da.tenda }}</td>
           <td>
-            {% if da.trangthai == "0" %}
+            {% if da.trangthai == "-1" %}
+            <span class="badge bg-danger">Từ chối</span>
+            {% elif da.trangthai == "0" %}
             <span class="badge bg-danger">Chờ duyệt</span>
             {% elif da.trangthai == "1" %}
             <span class="badge bg-warning text-dark">Đã duyệt</span>
@@ -103,7 +105,7 @@
                 data-ngaykt="{{ da.ngaykt|date:'Y-m-d' }}" data-linhvuc="{{ da.linhvuc|default_if_none:''|escapejs }}"
                 data-mota="{{ da.mota|default_if_none:''|escapejs }}"
                 data-file="{% if da.filepath %}/media/{{ da.filepath }}{% endif %}"
-                data-mahd="{{ da.mahd|default_if_none:'' }}">
+                data-mahd="{{ da.mahd|default_if_none:'' }}" data-lydo="{{ da.lydo|default_if_none:''|escapejs }}">
                 Sửa
               </button>
               {% if da.trangthai|stringformat:"s" == "0" %}
@@ -217,6 +219,7 @@
             <select class="form-select" name="trangthai" id="edit_trangthai">
               <option value="0">Chờ duyệt</option>
               <option value="1">Đã duyệt</option>
+              <option value="-1">Từ chối</option>
             </select>
           </div>
           <div class="col-md-3">
@@ -243,6 +246,10 @@
               <option value="{{ gv.magv }}">{{ gv.hoten }} - {{gv.donvicongtac}}</option>
               {% endfor %}
             </select>
+          </div>
+          <div class="col-12" id="lydo_container" style="display:none;">
+            <label class="form-label">Lý do từ chối</label>
+            <textarea class="form-control" name="lydo" id="edit_lydo" rows="3" placeholder="Nhập lý do từ chối..."></textarea>
           </div>
           <div class="col-12">
             <label class="form-label">Mô tả</label>

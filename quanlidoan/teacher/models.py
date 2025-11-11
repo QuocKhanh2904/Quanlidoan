@@ -58,6 +58,7 @@ class Doan(models.Model):
     file = models.FileField(db_column='FileDoAn', upload_to='doan/', blank=True, null=True)
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
+    lydo = models.TextField(db_column='LyDo', blank=True, null=True)
 
     class Meta:
         managed = False

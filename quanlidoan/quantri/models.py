@@ -153,6 +153,7 @@ class Doan(models.Model):
     file = models.FileField(db_column='FileDoAn', upload_to='doan/', blank=True, null=True)
     magv = models.ForeignKey('Giangvien', models.DO_NOTHING, db_column='MaGV', blank=True, null=True)
     mahd = models.ForeignKey('Hoidong', models.DO_NOTHING, db_column='MaHD', blank=True, null=True)
+    lydo = models.TextField(db_column='LyDo', blank=True, null=True)
 
     def doan_create_raw(
         tenda, trangthai=None, soluongtoida=None,
@@ -186,7 +187,7 @@ class Doan(models.Model):
     def doan_update_raw(
         mada, tenda, trangthai=None, soluongtoida=None,
         ngaybd=None, ngaykt=None, linhvuc=None,
-        mota=None, mahd=None, file=None
+        mota=None, mahd=None, file=None, lydo=None
     ):
         file_path = None
         if file:
@@ -194,7 +195,7 @@ class Doan(models.Model):
             file_path = default_storage.save(f'doan/{file.name}', file)
 
         with connection.cursor() as cursor:
-            cursor.execute(""" UPDATE DOAN SET TenDA=%s, TrangThai=%s, SoLuongToiDa=%s, NgayBD=%s, NgayKT=%s, LinhVuc=%s, MoTa=%s, MaHD=%s, FileDoAn=%s WHERE MaDA=%s""",
+            cursor.execute(""" UPDATE DOAN SET TenDA=%s, TrangThai=%s, SoLuongToiDa=%s, NgayBD=%s, NgayKT=%s, LinhVuc=%s, MoTa=%s, MaHD=%s, FileDoAn=%s, LyDo=%s WHERE MaDA=%s""",
                 [
                     tenda,
                     int(trangthai) if trangthai else None,
@@ -205,6 +206,7 @@ class Doan(models.Model):
                     mota or None,
                     int(mahd) if mahd else None,
                     file_path,
+                    lydo or None,
                     int(mada)
                 ])
             return mada

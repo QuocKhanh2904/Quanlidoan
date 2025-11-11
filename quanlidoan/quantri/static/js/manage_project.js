@@ -99,6 +99,33 @@ document.addEventListener('DOMContentLoaded', function () {
         alert('Không thể xóa dữ liệu. Vui lòng thử lại.');
       });
   });
+
+  const trangThaiSelect = document.getElementById("edit_trangthai");
+    const lyDoContainer = document.getElementById("lydo_container");
+
+    trangThaiSelect.addEventListener("change", function () {
+      if (this.value === "-1") { // Nếu chọn "Từ chối"
+        lyDoContainer.style.display = "block";
+      } else {
+        lyDoContainer.style.display = "none";
+        document.getElementById("edit_lydo").value = ""; // reset lý do nếu không từ chối
+      }
+    });
+
+    $("#modalEditProject").on("show.bs.modal", function (e) {
+  const button = $(e.relatedTarget);
+  const trangthai = button.data("trangthai");
+  const lydo = button.data("lydo");
+
+  $("#edit_trangthai").val(trangthai);
+  $("#edit_lydo").val(lydo || "");
+
+  if (trangthai == -1) {
+    $("#lydo_container").show();
+  } else {
+    $("#lydo_container").hide();
+  }
+});
 })
 
 function showModalEditProject(editModalEl) {
